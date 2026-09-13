@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum CaseStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  BANK
+  MOBILE_BANKING
+  OTHER
+}
+
+enum PaymentType {
+  ADVANCE
+  PAYMENT
+  REFUND
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Patient {
+  id             Int             @id @default(autoincrement())
+  patientNo      String          @unique @default(cuid())
+  name           String
+  age            Int?
+  dateOfBirth    DateTime?
+  gender         Gender?
+  phone          String
+  email          String?
+  address        String?
+  photoUrl       String?
+  notes          String?
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  caseHistories  CaseHistory[]
+  prescriptions  Prescription[]
+  payments       Payment[]
+  appointments   Appointment[]
+  notifications  Notification[]
+}
+
+model CaseHistory {
+  id             Int             @id @default(autoincrement())
+  patientId      Int
+  caseNo         Int
+  toothNumber    String?
+  problem        String?
+  treatment      String?
+  details        String?
+  caseDate       DateTime        @default(now())
+  status         CaseStatus      @default(OPEN)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  patient        Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  prescriptions  Prescription[]
+  @@unique([patientId, caseNo])
+  @@index([patientId, caseNo])
+}
+
+model Prescription {
+  id             Int             @id @default(autoincrement())
+  patientId      Int
+  caseHistoryId  Int
+  prescriptionNo String          @unique @default(cuid())
+  prescribedAt   DateTime        @default(now())
+  diagnosis      String?
+  notes          String?
+  patient        Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  caseHistory    CaseHistory     @relation(fields: [caseHistoryId], references: [id], onDelete: Cascade)
+  medicines      PrescriptionMedicine[]
+  @@index([patientId])
+  @@index([caseHistoryId])
+}
+
+model PrescriptionMedicine {
+  id             Int          @id @default(autoincrement())
+  prescriptionId Int
+  medicineName   String
+  dosage         String
+  duration       String
+  instructions   String?
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id             Int           @id @default(autoincrement())
+  patientId      Int
+  invoiceNo      String        @unique @default(cuid())
+  description    String?
+  amount         Decimal       @db.Decimal(12,2)
+  discount       Decimal       @db.Decimal(12,2) @default(0)
+  paidAmount     Decimal       @db.Decimal(12,2) @default(0)
+  type           PaymentType   @default(PAYMENT)
+  method         PaymentMethod @default(CASH)
+  paymentDate    DateTime      @default(now())
+  patient        Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  @@index([patientId, paymentDate])
+}
+
+model Appointment {
+  id           Int      @id @default(autoincrement())
+  patientId    Int
+  appointmentAt DateTime
+  purpose      String?
+  reminderSent Boolean  @default(false)
+  patient      Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  @@index([appointmentAt])
+}
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  description String?
+  users       UserRole[]
+  permissions RolePermission[]
+  menus       Menu[]
+}
+
+model Permission {
+  id          Int             @id @default(autoincrement())
+  code        String          @unique
+  name        String
+  description String?
+  roles       RolePermission[]
+  userPermissions UserPermission[]
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  @@id([roleId, permissionId])
+}
+
+model User {
+  id              Int              @id @default(autoincrement())
+  name            String
+  email           String           @unique
+  passwordHash    String
+  status          UserStatus       @default(ACTIVE)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  roles           UserRole[]
+  permissions     UserPermission[]
+  menus           UserMenu[]
+}
+
+model UserRole {
+  userId Int
+  roleId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  @@id([userId, roleId])
+}
+
+model UserPermission {
+  userId       Int
+  permissionId Int
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  @@id([userId, permissionId])
+}
+
+model Menu {
+  id          Int        @id @default(autoincrement())
+  title       String
+  path        String
+  icon        String?
+  sortOrder   Int        @default(0)
+  parentId    Int?
+  roleId      Int?
+  parent      Menu?      @relation("MenuTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Menu[]     @relation("MenuTree")
+  role        Role?      @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  userMenus   UserMenu[]
+  isActive    Boolean    @default(true)
+  @@index([parentId, sortOrder])
+}
+
+model UserMenu {
+  userId    Int
+  menuId    Int
+  canView   Boolean @default(true)
+  canCreate Boolean @default(false)
+  canEdit   Boolean @default(false)
+  canDelete Boolean @default(false)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  menu      Menu    @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  @@id([userId, menuId])
+}
+
+model GreetingTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String
+  subject     String?
+  body        String
+  channel     NotificationChannel
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Notification {
+  id          Int                  @id @default(autoincrement())
+  patientId   Int?
+  templateId  Int?
+  channel     NotificationChannel
+  recipient   String
+  subject     String?
+  body        String
+  status      NotificationStatus   @default(PENDING)
+  sentAt      DateTime?
+  error       String?
+  scheduledAt DateTime?
+  createdAt   DateTime             @default(now())
+  patient     Patient?             @relation(fields: [patientId], references: [id], onDelete: SetNull)
+}
