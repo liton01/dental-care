@@ -30,18 +30,121 @@ async function main() {
     }
   }
 
+  // const menus = [
+  //   ["Dashboard","/dashboard","layout-dashboard",1],
+  //   ["Patients","/patients","users",2],
+  //   ["Case History","/cases","file-text",3],
+  //   ["Prescriptions","/prescriptions","pill",4],
+  //   ["Payments & Accounting","/payments","wallet",5],
+  //   ["Greetings","/greetings","send",6],
+  //   ["Security","/security","shield",7]
+  // ];
+  // for (const [title,path,icon,sortOrder] of menus) {
+  //   await prisma.menu.upsert({ where: { id: Number(sortOrder) }, update: { title: String(title), path: String(path), icon: String(icon), sortOrder: Number(sortOrder) }, create: { id: Number(sortOrder), title: String(title), path: String(path), icon: String(icon), sortOrder: Number(sortOrder) } });
+  // }
   const menus = [
-    ["Dashboard","/dashboard","layout-dashboard",1],
-    ["Patients","/patients","users",2],
-    ["Case History","/cases","file-text",3],
-    ["Prescriptions","/prescriptions","pill",4],
-    ["Payments & Accounting","/payments","wallet",5],
-    ["Greetings","/greetings","send",6],
-    ["Security","/security","shield",7]
-  ];
-  for (const [title,path,icon,sortOrder] of menus) {
-    await prisma.menu.upsert({ where: { id: Number(sortOrder) }, update: { title: String(title), path: String(path), icon: String(icon), sortOrder: Number(sortOrder) }, create: { id: Number(sortOrder), title: String(title), path: String(path), icon: String(icon), sortOrder: Number(sortOrder) } });
-  }
+  ["Dashboard", "/dashboard", "layout-dashboard", 1],
+  ["Patients", "/patients", "users", 2],
+  ["Case History", "/cases", "file-text", 3],
+  ["Prescriptions", "/prescriptions", "pill", 4],
+  ["Payments & Accounting", "/payments", "wallet", 5],
+  ["Greetings", "/greetings", "send", 6],
+];
+
+for (const [title, path, icon, sortOrder] of menus) {
+  await prisma.menu.upsert({
+    where: { id: Number(sortOrder) },
+    update: {
+      title: String(title),
+      path: String(path),
+      icon: String(icon),
+      sortOrder: Number(sortOrder),
+    },
+    create: {
+      id: Number(sortOrder),
+      title: String(title),
+      path: String(path),
+      icon: String(icon),
+      sortOrder: Number(sortOrder),
+    },
+  });
+}
+
+// Security parent menu
+const security = await prisma.menu.upsert({
+  where: { id: 7 },
+  update: {
+    title: "Security",
+    path: "#",
+    icon: "shield",
+    sortOrder: 7,
+  },
+  create: {
+    id: 7,
+    title: "Security",
+    path: "#",
+    icon: "shield",
+    sortOrder: 7,
+  },
+});
+
+// Security sub menus
+await prisma.menu.upsert({
+  where: { id: 8 },
+  update: {
+    title: "User",
+    path: "/security/users",
+    icon: "users",
+    parentId: security.id,
+    sortOrder: 1,
+  },
+  create: {
+    id: 8,
+    title: "User",
+    path: "/security/users",
+    icon: "users",
+    parentId: security.id,
+    sortOrder: 1,
+  },
+});
+
+await prisma.menu.upsert({
+  where: { id: 9 },
+  update: {
+    title: "Role",
+    path: "/security/roles",
+    icon: "shield-check",
+    parentId: security.id,
+    sortOrder: 2,
+  },
+  create: {
+    id: 9,
+    title: "Role",
+    path: "/security/roles",
+    icon: "shield-check",
+    parentId: security.id,
+    sortOrder: 2,
+  },
+});
+
+await prisma.menu.upsert({
+  where: { id: 10 },
+  update: {
+    title: "Permission",
+    path: "/security/permissions",
+    icon: "key-round",
+    parentId: security.id,
+    sortOrder: 3,
+  },
+  create: {
+    id: 10,
+    title: "Permission",
+    path: "/security/permissions",
+    icon: "key-round",
+    parentId: security.id,
+    sortOrder: 3,
+  },
+});
 
   const passwordHash = await bcrypt.hash("Admin@123", 12);
   const user = await prisma.user.upsert({ where: { email: "admin@mohonto.com" }, update: {}, create: { name: "System Administrator", email: "admin@mohonto.com", passwordHash } });

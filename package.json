@@ -13,17 +13,17 @@
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0",
-    "@react-pdf/renderer": "^4.3.0",
-    "bcryptjs": "^2.4.3",
-    "next": "14.2.33",
-    "next-auth": "^4.24.11",
-    "nodemailer": "^6.10.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwind-merge": "^2.6.0",
-    "twilio": "^5.8.0"
-  },
+  "@prisma/client": "^5.22.0",
+  "@react-pdf/renderer": "^4.3.0",
+  "bcryptjs": "^2.4.3",
+  "next": "14.2.33",
+  "next-auth": "^4.24.11",
+  "nodemailer": "^7.0.7",
+  "react": "^18.3.1",
+  "react-dom": "^18.3.1",
+  "tailwind-merge": "^2.6.0",
+  "twilio": "^5.8.0"
+},
   "devDependencies": {
     "@types/node": "^20.17.57",
     "@types/nodemailer": "^6.4.15",
