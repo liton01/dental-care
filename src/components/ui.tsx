@@ -1,4 +1,5 @@
 import React from "react";
+import { X } from "lucide-react";
 export function Button({className="",variant="primary",...p}: React.ButtonHTMLAttributes<HTMLButtonElement>&{variant?: "primary"|"secondary"}) {
   return <button className={`${variant==="primary"?"btn-primary":"btn-secondary"} ${className}`} {...p}/>;
 }
@@ -14,7 +15,7 @@ export function Modal({open,title,onClose,children}:{open:boolean;title:string;o
       <div className="card max-h-[90vh] w-full max-w-2xl overflow-y-auto p-5" onClick={(e)=>e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-semibold">{title}</h2>
-          <button type="button" className="text-slate-400 hover:text-slate-600" onClick={onClose} aria-label="Close">&#10005;</button>
+          <button type="button" className="text-slate-400 hover:text-slate-600" onClick={onClose} aria-label="Close"><X size={18}/></button>
         </div>
         {children}
       </div>

@@ -2,6 +2,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Textarea, Modal } from "@/components/ui";
+import { Plus, Search, X, UserPlus, Save } from "lucide-react";
 const empty = {
     name: "",
     age: "",
@@ -97,7 +98,8 @@ export default function Patients() {
                 </div>
 
                 <Button onClick={openNew}>
-                    + New Patient
+                    <Plus size={16} className="mr-1.5" />
+                    New Patient
                 </Button>
             </div>
 
@@ -114,6 +116,7 @@ export default function Patients() {
                     />
 
                     <Button onClick={load}>
+                        <Search size={16} className="mr-1.5" />
                         Search
                     </Button>
                 </div>
@@ -248,10 +251,16 @@ export default function Patients() {
                             variant="secondary"
                             onClick={closeModal}
                         >
+                            <X size={16} className="mr-1.5" />
                             Cancel
                         </Button>
 
                         <Button type="submit">
+                            {editing ? (
+                                <Save size={16} className="mr-1.5" />
+                            ) : (
+                                <UserPlus size={16} className="mr-1.5" />
+                            )}
                             {editing ? "Update" : "Register Patient"}
                         </Button>
                     </div>
