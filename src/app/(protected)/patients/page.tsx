@@ -28,18 +28,22 @@ const fields: { key: string; label: string; type: string }[] = [
 export default function Patients() {
     const [items, setItems] = useState<any[]>([]);
     const [q, setQ] = useState("");
+    const [genderFilter, setGenderFilter] = useState("");
     const [form, setForm] = useState<any>(empty);
     const [editing, setEditing] = useState<number | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
 
-    const load = () => {
-        fetch("/api/patients?q=" + encodeURIComponent(q))
+    const load = (gender = genderFilter) => {
+        const params = new URLSearchParams({ q });
+        if (gender) params.set("gender", gender);
+        fetch("/api/patients?" + params.toString())
             .then((r) => r.json())
             .then(setItems);
     };
 
     useEffect(() => {
         load();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const openNew = () => {
@@ -105,7 +109,7 @@ export default function Patients() {
 
             {/* Patient List */}
             <Card className="p-5">
-                <div className="mb-4 flex gap-2">
+                <div className="mb-4 flex flex-col gap-2 sm:flex-row">
                     <Input
                         placeholder="Search name, phone or patient no..."
                         value={q}
@@ -115,7 +119,21 @@ export default function Patients() {
                         }
                     />
 
-                    <Button onClick={load}>
+                    <select
+                        className="input sm:w-44"
+                        value={genderFilter}
+                        onChange={(e) => {
+                            setGenderFilter(e.target.value);
+                            load(e.target.value);
+                        }}
+                    >
+                        <option value="">All Genders</option>
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+
+                    <Button onClick={() => load()}>
                         <Search size={16} className="mr-1.5" />
                         Search
                     </Button>
@@ -135,6 +153,22 @@ export default function Patients() {
 
                                 <th className="p-3">
                                     Phone
+                                </th>
+
+                                <th className="p-3">
+                                    Gender
+                                </th>
+
+                                <th className="p-3">
+                                    Age
+                                </th>
+
+                                <th className="p-3">
+                                    Email
+                                </th>
+
+                                <th className="p-3">
+                                    Address
                                 </th>
 
                                 <th className="p-3">
@@ -161,6 +195,27 @@ export default function Patients() {
 
                                     <td className="p-3">
                                         {p.phone}
+                                    </td>
+
+                                    <td className="p-3">
+                                        {p.gender
+                                            ? p.gender.charAt(0) +
+                                              p.gender
+                                                  .slice(1)
+                                                  .toLowerCase()
+                                            : "-"}
+                                    </td>
+
+                                    <td className="p-3">
+                                        {p.age ?? "-"}
+                                    </td>
+
+                                    <td className="p-3">
+                                        {p.email || "-"}
+                                    </td>
+
+                                    <td className="p-3 max-w-[180px] truncate" title={p.address || ""}>
+                                        {p.address || "-"}
                                     </td>
 
                                     <td className="p-3">

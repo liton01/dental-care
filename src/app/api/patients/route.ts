@@ -5,8 +5,12 @@ export async function GET(req: Request) {
   if (!await requireSession()) return bad("Unauthorized", 401);
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim() ?? "";
+  const gender = searchParams.get("gender")?.trim() ?? "";
+  const where: any = {};
+  if (q) where.OR = [{ name: { contains: q, mode: "insensitive" } }, { phone: { contains: q } }, { patientNo: { contains: q, mode: "insensitive" } }];
+  if (gender) where.gender = gender;
   const patients = await db.patient.findMany({
-    where: q ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { phone: { contains: q } }, { patientNo: { contains: q, mode: "insensitive" } }] } : {},
+    where,
     orderBy: { updatedAt: "desc" },
     include: { _count: { select: { caseHistories: true, prescriptions: true, payments: true } } }
   });
