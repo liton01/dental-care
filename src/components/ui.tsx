@@ -8,6 +8,62 @@ export function Input(p: React.InputHTMLAttributes<HTMLInputElement>) { return <
 export function Label({children}:{children:React.ReactNode}) { return <label className="label">{children}</label>; }
 export function Badge({children}:{children:React.ReactNode}) { return <span className="rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700">{children}</span>; }
 export function Textarea(p: React.TextareaHTMLAttributes<HTMLTextAreaElement>) { return <textarea className="input min-h-[80px] resize-y" {...p}/>; }
+export function SearchSelect({
+  options, value, onChange, placeholder = "Search...", required,
+}: {
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  required?: boolean;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [query, setQuery] = React.useState("");
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  const selected = options.find((o) => o.value === value);
+  const filtered = query
+    ? options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase()))
+    : options;
+
+  return (
+    <div className="relative" ref={ref}>
+      <input
+        className="input"
+        placeholder={placeholder}
+        value={open ? query : selected?.label ?? ""}
+        onChange={(e) => { setQuery(e.target.value); if (!open) setOpen(true); }}
+        onFocus={() => { setQuery(""); setOpen(true); }}
+        required={required && !value}
+      />
+      {open && (
+        <div className="absolute z-40 mt-1 max-h-52 w-full overflow-y-auto rounded-lg border bg-white shadow-lg">
+          {filtered.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              className={`block w-full px-3 py-2 text-left text-sm hover:bg-teal-50 ${o.value === value ? "bg-teal-50 font-medium text-teal-700" : ""}`}
+              onClick={() => { onChange(o.value); setOpen(false); setQuery(""); }}
+            >
+              {o.label}
+            </button>
+          ))}
+          {filtered.length === 0 && (
+            <div className="px-3 py-2 text-sm text-slate-500">No match found</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 export function Modal({open,title,onClose,children}:{open:boolean;title:string;onClose:()=>void;children:React.ReactNode}) {
   if(!open) return null;
   return (

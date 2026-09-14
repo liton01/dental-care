@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Card, Input, Label, Button, Textarea, Modal } from "@/components/ui";
+import { Card, Input, Label, Button, Textarea, Modal, SearchSelect } from "@/components/ui";
 import { Plus, X, Save, List } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -144,22 +144,18 @@ export default function Cases() {
                     <div>
                         <Label>Patient</Label>
 
-                        <select
-                            className="input"
+                        <SearchSelect
+                            options={patients.map((p) => ({
+                                value: String(p.id),
+                                label: `${p.name} — ${p.phone}`,
+                            }))}
                             value={f.patientId}
-                            onChange={(e) =>
-                                setF({ ...f, patientId: e.target.value })
+                            onChange={(v) =>
+                                setF({ ...f, patientId: v })
                             }
+                            placeholder="Search patient by name or phone..."
                             required
-                        >
-                            <option value="">Select patient</option>
-
-                            {patients.map((p) => (
-                                <option key={p.id} value={p.id}>
-                                    {p.name} — {p.phone}
-                                </option>
-                            ))}
-                        </select>
+                        />
                     </div>
 
                     <div>
@@ -212,10 +208,10 @@ export default function Cases() {
                         />
                     </div>
 
-                    <div>
+                    <div className="sm:col-span-2">
                         <Label>Problem</Label>
 
-                        <Input
+                        <Textarea
                             value={f.problem}
                             onChange={(e) =>
                                 setF({ ...f, problem: e.target.value })
@@ -223,10 +219,10 @@ export default function Cases() {
                         />
                     </div>
 
-                    <div>
+                    <div className="sm:col-span-2">
                         <Label>Treatment</Label>
 
-                        <Input
+                        <Textarea
                             value={f.treatment}
                             onChange={(e) =>
                                 setF({ ...f, treatment: e.target.value })
@@ -235,7 +231,7 @@ export default function Cases() {
                     </div>
 
                     <div className="sm:col-span-2">
-                        <Label>Details</Label>
+                        <Label>Remarks</Label>
 
                         <Textarea
                             value={f.details}
