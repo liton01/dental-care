@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   const patient = await db.patient.create({ data: {
     name: body.name, age: body.age ? Number(body.age) : null, phone: body.phone,
     email: body.email || null, address: body.address || null, photoUrl: body.photoUrl || null,
-    gender: body.gender || null, dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null, notes: body.notes || null
+    gender: body.gender || null, bloodGroup: body.bloodGroup || null, dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null, notes: body.notes || null
   }});
   return ok(patient, 201);
 }

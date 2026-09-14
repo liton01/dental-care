@@ -58,6 +58,7 @@ model Patient {
   age            Int?
   dateOfBirth    DateTime?
   gender         Gender?
+  bloodGroup     String?
   phone          String
   email          String?
   address        String?

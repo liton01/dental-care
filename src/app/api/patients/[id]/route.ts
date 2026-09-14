@@ -10,7 +10,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const body = await parseBody(req);
   const patient = await db.patient.update({ where: { id: Number(params.id) }, data: {
     name: body.name, age: body.age ? Number(body.age) : null, phone: body.phone, email: body.email || null,
-    address: body.address || null, photoUrl: body.photoUrl || null, gender: body.gender || null,
+    address: body.address || null, photoUrl: body.photoUrl || null, gender: body.gender || null, bloodGroup: body.bloodGroup || null,
     dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null, notes: body.notes || null
   }});
   return ok(patient);

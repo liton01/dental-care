@@ -10,6 +10,7 @@ const empty = {
     email: "",
     address: "",
     gender: "",
+    bloodGroup: "",
     dateOfBirth: "",
     notes: "",
 };
@@ -21,9 +22,21 @@ const fields: { key: string; label: string; type: string }[] = [
     { key: "age", label: "Age", type: "text" },
     { key: "dateOfBirth", label: "Date Of Birth", type: "date" },
     { key: "gender", label: "Gender", type: "select" },
+    { key: "bloodGroup", label: "Blood Group", type: "select" },
     { key: "address", label: "Address", type: "textarea" },
     { key: "notes", label: "Remarks", type: "textarea" },
 ];
+
+const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+const selectOptions: Record<string, { value: string; label: string }[]> = {
+    gender: [
+        { value: "MALE", label: "Male" },
+        { value: "FEMALE", label: "Female" },
+        { value: "OTHER", label: "Other" },
+    ],
+    bloodGroup: bloodGroups.map((b) => ({ value: b, label: b })),
+};
 
 export default function Patients() {
     const [items, setItems] = useState<any[]>([]);
@@ -57,6 +70,7 @@ export default function Patients() {
         setForm({
             ...p,
             age: p.age || "",
+            bloodGroup: p.bloodGroup || "",
             dateOfBirth: p.dateOfBirth?.slice(0, 10) || "",
         });
         setModalOpen(true);
@@ -160,6 +174,10 @@ export default function Patients() {
                                 </th>
 
                                 <th className="p-3">
+                                    Blood Group
+                                </th>
+
+                                <th className="p-3">
                                     Age
                                 </th>
 
@@ -204,6 +222,10 @@ export default function Patients() {
                                                   .slice(1)
                                                   .toLowerCase()
                                             : "-"}
+                                    </td>
+
+                                    <td className="p-3">
+                                        {p.bloodGroup || "-"}
                                     </td>
 
                                     <td className="p-3">
@@ -277,9 +299,16 @@ export default function Patients() {
                                     }
                                 >
                                     <option value="">Select</option>
-                                    <option value="MALE">Male</option>
-                                    <option value="FEMALE">Female</option>
-                                    <option value="OTHER">Other</option>
+                                    {(selectOptions[f.key] || []).map(
+                                        (o) => (
+                                            <option
+                                                key={o.value}
+                                                value={o.value}
+                                            >
+                                                {o.label}
+                                            </option>
+                                        )
+                                    )}
                                 </select>
                             ) : (
                                 <Input
