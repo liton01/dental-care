@@ -152,58 +152,74 @@ export default function Patients() {
 
             {/* Patient List */}
             <Card className="p-5">
-                <div className="mb-4 flex flex-col gap-2 sm:flex-row">
-                    <Input
-                        placeholder="Search name, phone or patient no..."
-                        value={q}
-                        onChange={(e) => setQ(e.target.value)}
-                        onKeyDown={(e) =>
-                            e.key === "Enter" && load()
-                        }
-                    />
+                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end">
+                    <div className="flex-1">
+                        <Label>Search</Label>
 
-                    <select
-                        className="input sm:w-44"
-                        value={genderFilter}
-                        onChange={(e) => {
-                            setGenderFilter(e.target.value);
-                            load(e.target.value);
-                        }}
-                    >
-                        <option value="">All Genders</option>
-                        <option value="MALE">Male</option>
-                        <option value="FEMALE">Female</option>
-                        <option value="OTHER">Other</option>
-                    </select>
+                        <Input
+                            placeholder="Search name, phone or patient no..."
+                            value={q}
+                            onChange={(e) => setQ(e.target.value)}
+                            onKeyDown={(e) =>
+                                e.key === "Enter" && load()
+                            }
+                        />
+                    </div>
 
-                    <DatePicker
-                        selected={dateFrom ? new Date(dateFrom) : null}
-                        onChange={(d: Date | null) => {
-                            const v = d ? toYMD(d) : "";
-                            setDateFrom(v);
-                            load(genderFilter, v, dateTo);
-                        }}
-                        dateFormat="dd/MM/yyyy"
-                        placeholderText="Admission from"
-                        className="input"
-                        wrapperClassName="sm:!w-40"
-                        isClearable
-                    />
+                    <div className="sm:w-44">
+                        <Label>Gender</Label>
 
-                    <DatePicker
-                        selected={dateTo ? new Date(dateTo) : null}
-                        onChange={(d: Date | null) => {
-                            const v = d ? toYMD(d) : "";
-                            setDateTo(v);
-                            load(genderFilter, dateFrom, v);
-                        }}
-                        dateFormat="dd/MM/yyyy"
-                        placeholderText="Admission to"
-                        className="input"
-                        wrapperClassName="sm:!w-40"
-                        minDate={dateFrom ? new Date(dateFrom) : undefined}
-                        isClearable
-                    />
+                        <select
+                            className="input"
+                            value={genderFilter}
+                            onChange={(e) => {
+                                setGenderFilter(e.target.value);
+                                load(e.target.value);
+                            }}
+                        >
+                            <option value="">All Genders</option>
+                            <option value="MALE">Male</option>
+                            <option value="FEMALE">Female</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+
+                    <div className="sm:w-40">
+                        <Label>Admission From</Label>
+
+                        <DatePicker
+                            selected={dateFrom ? new Date(dateFrom) : null}
+                            onChange={(d: Date | null) => {
+                                const v = d ? toYMD(d) : "";
+                                setDateFrom(v);
+                                load(genderFilter, v, dateTo);
+                            }}
+                            dateFormat="dd/MM/yyyy"
+                            placeholderText="dd/mm/yyyy"
+                            className="input"
+                            wrapperClassName="w-full"
+                            isClearable
+                        />
+                    </div>
+
+                    <div className="sm:w-40">
+                        <Label>Admission To</Label>
+
+                        <DatePicker
+                            selected={dateTo ? new Date(dateTo) : null}
+                            onChange={(d: Date | null) => {
+                                const v = d ? toYMD(d) : "";
+                                setDateTo(v);
+                                load(genderFilter, dateFrom, v);
+                            }}
+                            dateFormat="dd/MM/yyyy"
+                            placeholderText="dd/mm/yyyy"
+                            className="input"
+                            wrapperClassName="w-full"
+                            minDate={dateFrom ? new Date(dateFrom) : undefined}
+                            isClearable
+                        />
+                    </div>
 
                     <Button onClick={() => load()}>
                         <Search size={16} className="mr-1.5" />
