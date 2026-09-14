@@ -9,6 +9,13 @@ export async function GET(req: Request) {
   const where: any = {};
   if (q) where.OR = [{ name: { contains: q, mode: "insensitive" } }, { phone: { contains: q } }, { patientNo: { contains: q, mode: "insensitive" } }];
   if (gender) where.gender = gender;
+  const dateFrom = searchParams.get("dateFrom")?.trim() ?? "";
+  const dateTo = searchParams.get("dateTo")?.trim() ?? "";
+  if (dateFrom || dateTo) {
+    where.admissionDate = {};
+    if (dateFrom) where.admissionDate.gte = new Date(dateFrom);
+    if (dateTo) where.admissionDate.lte = new Date(dateTo + "T23:59:59.999");
+  }
   const patients = await db.patient.findMany({
     where,
     orderBy: { updatedAt: "desc" },

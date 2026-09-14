@@ -59,13 +59,21 @@ export default function Patients() {
     const [items, setItems] = useState<any[]>([]);
     const [q, setQ] = useState("");
     const [genderFilter, setGenderFilter] = useState("");
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
     const [form, setForm] = useState<any>(empty);
     const [editing, setEditing] = useState<number | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
 
-    const load = (gender = genderFilter) => {
+    const load = (
+        gender = genderFilter,
+        from = dateFrom,
+        to = dateTo
+    ) => {
         const params = new URLSearchParams({ q });
         if (gender) params.set("gender", gender);
+        if (from) params.set("dateFrom", from);
+        if (to) params.set("dateTo", to);
         fetch("/api/patients?" + params.toString())
             .then((r) => r.json())
             .then(setItems);
@@ -167,6 +175,35 @@ export default function Patients() {
                         <option value="FEMALE">Female</option>
                         <option value="OTHER">Other</option>
                     </select>
+
+                    <DatePicker
+                        selected={dateFrom ? new Date(dateFrom) : null}
+                        onChange={(d: Date | null) => {
+                            const v = d ? toYMD(d) : "";
+                            setDateFrom(v);
+                            load(genderFilter, v, dateTo);
+                        }}
+                        dateFormat="dd/MM/yyyy"
+                        placeholderText="Admission from"
+                        className="input"
+                        wrapperClassName="sm:!w-40"
+                        isClearable
+                    />
+
+                    <DatePicker
+                        selected={dateTo ? new Date(dateTo) : null}
+                        onChange={(d: Date | null) => {
+                            const v = d ? toYMD(d) : "";
+                            setDateTo(v);
+                            load(genderFilter, dateFrom, v);
+                        }}
+                        dateFormat="dd/MM/yyyy"
+                        placeholderText="Admission to"
+                        className="input"
+                        wrapperClassName="sm:!w-40"
+                        minDate={dateFrom ? new Date(dateFrom) : undefined}
+                        isClearable
+                    />
 
                     <Button onClick={() => load()}>
                         <Search size={16} className="mr-1.5" />
