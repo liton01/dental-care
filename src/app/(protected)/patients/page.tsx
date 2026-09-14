@@ -184,9 +184,16 @@ export default function Patients() {
                 title={editing ? "Update Patient" : "New Patient"}
                 onClose={closeModal}
             >
-                <form onSubmit={save} className="space-y-3">
+                <form onSubmit={save} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {fields.map((f) => (
-                        <div key={f.key}>
+                        <div
+                            key={f.key}
+                            className={
+                                f.type === "textarea"
+                                    ? "sm:col-span-2"
+                                    : ""
+                            }
+                        >
                             <Label>{f.label}</Label>
 
                             {f.type === "textarea" ? (
@@ -238,7 +245,7 @@ export default function Patients() {
                         </select>
                     </div>
 
-                    <div className="flex justify-end gap-2 pt-2">
+                    <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
                         <Button
                             type="button"
                             variant="secondary"
