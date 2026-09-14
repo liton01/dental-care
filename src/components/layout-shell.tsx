@@ -48,7 +48,7 @@ export default function LayoutShell({
                     collapsed ? "" : "lg:ml-64"
                 }`}
             >
-                <div className="mx-auto max-w-7xl p-4 md:p-6">
+                <div className="p-4 md:p-6">
                     {children}
                 </div>
             </main>
