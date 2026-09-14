@@ -20,7 +20,15 @@ const securityItems = [
     ["Permission", "/security/permissions"],
 ];
 
-export default function Sidebar() {
+export default function Sidebar({
+    collapsed,
+    mobileOpen,
+    onNavigate,
+}: {
+    collapsed: boolean;
+    mobileOpen: boolean;
+    onNavigate: () => void;
+}) {
     const path = usePathname();
 
     const isSecurityActive = path.startsWith("/security");
@@ -30,18 +38,21 @@ export default function Sidebar() {
 
     return (
         <aside
-            className="
+            className={`
                 fixed
                 inset-y-0
                 left-0
-                z-20
-                hidden
+                z-30
+                flex
                 w-64
+                flex-col
                 border-r
                 bg-white
-                lg:flex
-                lg:flex-col
-            "
+                transition-transform
+                duration-200
+                ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
+                ${collapsed ? "lg:-translate-x-full" : "lg:translate-x-0"}
+            `}
         >
             {/* =====================================================
                 HEADER
@@ -90,6 +101,7 @@ export default function Sidebar() {
                         <Link
                             key={href}
                             href={href}
+                            onClick={onNavigate}
                             className={`
                                 flex
                                 items-center
@@ -188,6 +200,7 @@ export default function Sidebar() {
                                 <Link
                                     key={href}
                                     href={href}
+                                    onClick={onNavigate}
                                     className={`
                                         flex
                                         items-center
