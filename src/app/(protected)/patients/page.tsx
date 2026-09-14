@@ -3,6 +3,21 @@
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Textarea, Modal } from "@/components/ui";
 import { Plus, Search, X, UserPlus, Save } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+// yyyy-mm-dd from a Date, using local time so the day never shifts
+const toYMD = (d: Date) => {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
+// dd/mm/yyyy for display
+const fmtDate = (iso?: string | null) => {
+    if (!iso) return "-";
+    const [y, m, d] = iso.slice(0, 10).split("-");
+    return `${d}/${m}/${y}`;
+};
 const empty = {
     name: "",
     age: "",
@@ -242,10 +257,8 @@ export default function Patients() {
                                         {p.age ?? "-"}
                                     </td>
 
-                                    <td className="p-3">
-                                        {p.admissionDate
-                                            ? p.admissionDate.slice(0, 10)
-                                            : "-"}
+                                    <td className="p-3 whitespace-nowrap">
+                                        {fmtDate(p.admissionDate)}
                                     </td>
 
                                     <td className="p-3">
@@ -326,6 +339,28 @@ export default function Patients() {
                                         )
                                     )}
                                 </select>
+                            ) : f.type === "date" ? (
+                                <DatePicker
+                                    selected={
+                                        form[f.key]
+                                            ? new Date(form[f.key])
+                                            : null
+                                    }
+                                    onChange={(d: Date | null) =>
+                                        setForm({
+                                            ...form,
+                                            [f.key]: d ? toYMD(d) : "",
+                                        })
+                                    }
+                                    dateFormat="dd/MM/yyyy"
+                                    placeholderText="dd/mm/yyyy"
+                                    className="input"
+                                    wrapperClassName="w-full"
+                                    showYearDropdown
+                                    showMonthDropdown
+                                    dropdownMode="select"
+                                    isClearable
+                                />
                             ) : (
                                 <Input
                                     type={f.type}
