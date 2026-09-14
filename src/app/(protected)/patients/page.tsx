@@ -19,6 +19,7 @@ const fields: { key: string; label: string; type: string }[] = [
     { key: "email", label: "Email", type: "text" },
     { key: "age", label: "Age", type: "text" },
     { key: "dateOfBirth", label: "Date Of Birth", type: "date" },
+    { key: "gender", label: "Gender", type: "select" },
     { key: "address", label: "Address", type: "textarea" },
     { key: "notes", label: "Remarks", type: "textarea" },
 ];
@@ -206,6 +207,22 @@ export default function Patients() {
                                         })
                                     }
                                 />
+                            ) : f.type === "select" ? (
+                                <select
+                                    className="input"
+                                    value={form[f.key]}
+                                    onChange={(e) =>
+                                        setForm({
+                                            ...form,
+                                            [f.key]: e.target.value,
+                                        })
+                                    }
+                                >
+                                    <option value="">Select</option>
+                                    <option value="MALE">Male</option>
+                                    <option value="FEMALE">Female</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
                             ) : (
                                 <Input
                                     type={f.type}
@@ -224,26 +241,6 @@ export default function Patients() {
                             )}
                         </div>
                     ))}
-
-                    <div>
-                        <Label>Gender</Label>
-
-                        <select
-                            className="input"
-                            value={form.gender}
-                            onChange={(e) =>
-                                setForm({
-                                    ...form,
-                                    gender: e.target.value,
-                                })
-                            }
-                        >
-                            <option value="">Select</option>
-                            <option value="MALE">Male</option>
-                            <option value="FEMALE">Female</option>
-                            <option value="OTHER">Other</option>
-                        </select>
-                    </div>
 
                     <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
                         <Button
