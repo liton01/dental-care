@@ -12,6 +12,7 @@ const empty = {
     gender: "",
     bloodGroup: "",
     dateOfBirth: "",
+    admissionDate: "",
     notes: "",
 };
 
@@ -23,6 +24,7 @@ const fields: { key: string; label: string; type: string }[] = [
     { key: "dateOfBirth", label: "Date Of Birth", type: "date" },
     { key: "gender", label: "Gender", type: "select" },
     { key: "bloodGroup", label: "Blood Group", type: "select" },
+    { key: "admissionDate", label: "Admission Date", type: "date" },
     { key: "address", label: "Address", type: "textarea" },
     { key: "notes", label: "Remarks", type: "textarea" },
 ];
@@ -61,7 +63,10 @@ export default function Patients() {
 
     const openNew = () => {
         setEditing(null);
-        setForm(empty);
+        setForm({
+            ...empty,
+            admissionDate: new Date().toISOString().slice(0, 10),
+        });
         setModalOpen(true);
     };
 
@@ -72,6 +77,7 @@ export default function Patients() {
             age: p.age || "",
             bloodGroup: p.bloodGroup || "",
             dateOfBirth: p.dateOfBirth?.slice(0, 10) || "",
+            admissionDate: p.admissionDate?.slice(0, 10) || "",
         });
         setModalOpen(true);
     };
@@ -182,6 +188,10 @@ export default function Patients() {
                                 </th>
 
                                 <th className="p-3">
+                                    Admission Date
+                                </th>
+
+                                <th className="p-3">
                                     Email
                                 </th>
 
@@ -230,6 +240,12 @@ export default function Patients() {
 
                                     <td className="p-3">
                                         {p.age ?? "-"}
+                                    </td>
+
+                                    <td className="p-3">
+                                        {p.admissionDate
+                                            ? p.admissionDate.slice(0, 10)
+                                            : "-"}
                                     </td>
 
                                     <td className="p-3">
