@@ -10,10 +10,10 @@ export async function GET(req: Request) {
   if (patientId) where.patientId = patientId;
   if (type) where.type = type;
   if (method) where.method = method;
-  return ok(await db.payment.findMany({ where, include: { patient: true }, orderBy: { paymentDate: "desc" } }));
+  return ok(await db.payment.findMany({ where, include: { patient: true, caseHistory: true }, orderBy: { paymentDate: "desc" } }));
 }
 export async function POST(req: Request) {
   if (!await requireSession()) return bad("Unauthorized", 401);
   const b = await parseBody(req); if (!b?.patientId || b.amount === undefined) return bad("Patient and amount are required.");
-  return ok(await db.payment.create({ data: { patientId: Number(b.patientId), description: b.description || null, amount: Number(b.amount), discount: Number(b.discount || 0), paidAmount: Number(b.paidAmount ?? b.amount), type: b.type || "PAYMENT", method: b.method || "CASH", paymentDate: b.paymentDate ? new Date(b.paymentDate) : new Date() }, include: { patient: true } }), 201);
+  return ok(await db.payment.create({ data: { patientId: Number(b.patientId), description: b.description || null, amount: Number(b.amount), discount: Number(b.discount || 0), paidAmount: Number(b.paidAmount ?? b.amount), type: b.type || "PAYMENT", method: b.method || "CASH", paymentDate: b.paymentDate ? new Date(b.paymentDate) : new Date(), caseHistoryId: b.caseHistoryId ? Number(b.caseHistoryId) : null }, include: { patient: true, caseHistory: true } }), 201);
 }

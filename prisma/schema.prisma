@@ -91,6 +91,7 @@ model CaseHistory {
   prescriptions  Prescription[]
   @@unique([patientId, caseNo])
   @@index([patientId, caseNo])
+  payments       Payment[]
 }
 
 model Prescription {
@@ -129,6 +130,8 @@ model Payment {
   type           PaymentType   @default(PAYMENT)
   method         PaymentMethod @default(CASH)
   paymentDate    DateTime      @default(now())
+  caseHistoryId  Int?
+  caseHistory    CaseHistory?  @relation(fields: [caseHistoryId], references: [id], onDelete: SetNull)
   patient        Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
   @@index([patientId, paymentDate])
 }

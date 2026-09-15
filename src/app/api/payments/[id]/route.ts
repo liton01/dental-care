@@ -16,7 +16,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     paidAmount: Number(b.paidAmount ?? b.amount), type: b.type || "PAYMENT",
     method: b.method || "CASH",
     paymentDate: b.paymentDate ? new Date(b.paymentDate) : undefined,
-  }, include: { patient: true } }));
+    caseHistoryId: b.caseHistoryId ? Number(b.caseHistoryId) : null,
+  }, include: { patient: true, caseHistory: true } }));
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {

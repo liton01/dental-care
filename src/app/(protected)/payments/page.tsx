@@ -21,6 +21,7 @@ const METHODS = ["CASH", "CARD", "BANK", "MOBILE_BANKING", "OTHER"];
 
 const empty = {
     patientId: "",
+    caseHistoryId: "",
     description: "",
     amount: "",
     discount: "0",
@@ -36,6 +37,18 @@ export default function BillCollection() {
     const [f, setF] = useState<any>(empty);
     const [editing, setEditing] = useState<number | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [patientCases, setPatientCases] = useState<any[]>([]);
+
+    // cases of the patient chosen in the modal
+    useEffect(() => {
+        if (!f.patientId) {
+            setPatientCases([]);
+            return;
+        }
+        fetch(`/api/cases?patientId=${f.patientId}`)
+            .then((r) => r.json())
+            .then((d) => setPatientCases(Array.isArray(d) ? d : []));
+    }, [f.patientId]);
 
     // filters
     const [fltPatient, setFltPatient] = useState("");
@@ -61,6 +74,21 @@ export default function BillCollection() {
             .then((r) => r.json())
             .then(setPatients);
         load();
+
+        // arriving from case history: ?patientId=..&caseId=..
+        const sp = new URLSearchParams(window.location.search);
+        const pid = sp.get("patientId");
+        if (pid) {
+            setEditing(null);
+            setF({
+                ...empty,
+                patientId: pid,
+                caseHistoryId: sp.get("caseId") || "",
+                paymentDate: toYMD(new Date()),
+            });
+            setModalOpen(true);
+            window.history.replaceState(null, "", "/payments");
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -81,6 +109,7 @@ export default function BillCollection() {
         setEditing(p.id);
         setF({
             patientId: String(p.patientId),
+            caseHistoryId: p.caseHistoryId ? String(p.caseHistoryId) : "",
             description: p.description || "",
             amount: String(p.amount),
             discount: String(p.discount ?? 0),
@@ -229,6 +258,7 @@ export default function BillCollection() {
                                 <th className="p-3">Invoice</th>
                                 <th className="p-3">Date</th>
                                 <th className="p-3">Patient</th>
+                                <th className="p-3">Case</th>
                                 <th className="p-3">Type</th>
                                 <th className="p-3">Method</th>
                                 <th className="p-3">Amount</th>
@@ -252,6 +282,12 @@ export default function BillCollection() {
 
                                     <td className="p-3 font-medium">
                                         {p.patient.name}
+                                    </td>
+
+                                    <td className="p-3 whitespace-nowrap">
+                                        {p.caseHistory
+                                            ? `Case-${String(p.caseHistory.caseNo).padStart(2, "0")}`
+                                            : "-"}
                                     </td>
 
                                     <td className="p-3">{p.type}</td>
@@ -300,7 +336,7 @@ export default function BillCollection() {
                             {items.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={10}
+                                        colSpan={11}
                                         className="p-8 text-center text-slate-500"
                                     >
                                         No transactions found
@@ -331,11 +367,40 @@ export default function BillCollection() {
                             }))}
                             value={f.patientId}
                             onChange={(v) =>
-                                setF({ ...f, patientId: v })
+                                setF({ ...f, patientId: v, caseHistoryId: "" })
                             }
                             placeholder="Search patient by name or phone..."
                             required
                         />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                        <Label>Case History</Label>
+
+                        <select
+                            className="input"
+                            value={f.caseHistoryId}
+                            onChange={(e) =>
+                                setF({
+                                    ...f,
+                                    caseHistoryId: e.target.value,
+                                })
+                            }
+                            disabled={!f.patientId}
+                        >
+                            <option value="">
+                                {f.patientId
+                                    ? "No case (general payment)"
+                                    : "Select a patient first"}
+                            </option>
+
+                            {patientCases.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    Case-{String(c.caseNo).padStart(2, "0")}
+                                    {c.problem ? ` — ${c.problem}` : ""}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="sm:col-span-2">

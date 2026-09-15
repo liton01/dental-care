@@ -30,7 +30,7 @@ export default function CaseFormModal({
 }: {
     open: boolean;
     onClose: () => void;
-    onSaved: () => void;
+    onSaved: (saved?: any) => void;
     caseData?: any | null;
     fixedPatientId?: string;
 }) {
@@ -70,7 +70,7 @@ export default function CaseFormModal({
     const save = async (e: any) => {
         e.preventDefault();
 
-        await fetch(
+        const res = await fetch(
             caseData ? `/api/cases/${caseData.id}` : "/api/cases",
             {
                 method: caseData ? "PATCH" : "POST",
@@ -79,8 +79,10 @@ export default function CaseFormModal({
             }
         );
 
+        const saved = await res.json().catch(() => null);
+
         onClose();
-        onSaved();
+        onSaved(res.ok ? saved : undefined);
     };
 
     return (

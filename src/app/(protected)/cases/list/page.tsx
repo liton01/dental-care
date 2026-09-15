@@ -244,7 +244,14 @@ export default function CaseHistoryList() {
             <CaseFormModal
                 open={modalOpen}
                 onClose={() => setModalOpen(false)}
-                onSaved={() => load()}
+                onSaved={(saved) => {
+                    load();
+                    if (saved?.id && confirm("Case saved. Go to bill collection for this case?")) {
+                        router.push(
+                            `/payments?patientId=${saved.patientId}&caseId=${saved.id}`
+                        );
+                    }
+                }}
                 caseData={editingCase}
             />
         </div>
