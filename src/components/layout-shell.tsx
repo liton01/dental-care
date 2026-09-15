@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "./sidebar";
 import Topbar from "./topbar";
 
@@ -13,6 +13,16 @@ export default function LayoutShell({
 
     // mobile: sidebar slides in as an overlay drawer
     const [mobileOpen, setMobileOpen] = useState(false);
+
+    // organization branding, loaded from the database
+    const [org, setOrg] = useState<any>(null);
+
+    useEffect(() => {
+        fetch("/api/organization/active")
+            .then((r) => r.json())
+            .then(setOrg)
+            .catch(() => {});
+    }, []);
 
     const toggleSidebar = () => {
         if (window.innerWidth >= 1024) {
@@ -28,6 +38,7 @@ export default function LayoutShell({
                 collapsed={collapsed}
                 mobileOpen={mobileOpen}
                 onNavigate={() => setMobileOpen(false)}
+                org={org}
             />
 
             {/* mobile backdrop */}
@@ -41,6 +52,7 @@ export default function LayoutShell({
             <Topbar
                 collapsed={collapsed}
                 onToggleSidebar={toggleSidebar}
+                org={org}
             />
 
             <main

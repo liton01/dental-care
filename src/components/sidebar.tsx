@@ -15,6 +15,7 @@ const items = [
 ];
 
 const securityItems = [
+    ["Organization", "/security/organization"],
     ["User", "/security/users"],
     ["User Role", "/security/user-roles"],
     ["Role", "/security/roles"],
@@ -25,10 +26,12 @@ export default function Sidebar({
     collapsed,
     mobileOpen,
     onNavigate,
+    org,
 }: {
     collapsed: boolean;
     mobileOpen: boolean;
     onNavigate: () => void;
+    org?: any;
 }) {
     const path = usePathname();
 
@@ -70,11 +73,11 @@ export default function Sidebar({
             >
                 <div>
                     <div className="font-bold text-teal-700">
-                        Mohonto Dental Care
+                        {org?.nameEn || "Mohonto Dental Care"}
                     </div>
 
                     <div className="text-xs text-slate-500">
-                        Clinic Management
+                        {org?.slogan || "Clinic Management"}
                     </div>
                 </div>
             </div>

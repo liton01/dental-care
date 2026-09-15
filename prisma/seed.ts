@@ -3,7 +3,30 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+async function seedOrganization() {
+  const count = await db.organization.count();
+  if (count === 0) {
+    await db.organization.create({
+      data: {
+        nameEn: "Mohonto Dental Care",
+        nameBn: "Mohonto Dental Care",
+        slogan: null,
+        code: "MDC-001",
+        email: "info@mohontodental.com",
+        phone: "01700-000000",
+        website: "https://mohontodental.com",
+        addressLine1: "Station Road",
+        city: "Rajshahi",
+        country: "Bangladesh",
+        isActive: true,
+      },
+    });
+    console.log("Seeded organization");
+  }
+}
+
 async function main() {
+  await seedOrganization();
   const permissions = [
     ["DASHBOARD.V", "View Dashboard"],
     ["PATIENT.V", "View Patients"], ["PATIENT.C", "Create Patients"], ["PATIENT.E", "Edit Patients"],

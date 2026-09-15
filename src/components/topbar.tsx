@@ -5,9 +5,11 @@ import { Menu, LogOut } from "lucide-react";
 export default function Topbar({
     collapsed,
     onToggleSidebar,
+    org,
 }: {
     collapsed: boolean;
     onToggleSidebar: () => void;
+    org?: any;
 }) {
     return (
         <header
@@ -27,11 +29,11 @@ export default function Topbar({
 
                 <div>
                     <div className="font-semibold">
-                        Mohonto Dental Care
+                        {org?.nameEn || "Mohonto Dental Care"}
                     </div>
 
                     <div className="text-xs text-slate-500">
-                        Dental Clinic Management System
+                        {org?.slogan || "Dental Clinic Management System"}
                     </div>
                 </div>
             </div>
