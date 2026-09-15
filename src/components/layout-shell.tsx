@@ -56,7 +56,7 @@ export default function LayoutShell({
             />
 
             <main
-                className={`min-h-screen pt-20 transition-all duration-200 ${
+                className={`min-h-screen pt-16 transition-all duration-200 ${
                     collapsed ? "" : "lg:ml-64"
                 }`}
             >
