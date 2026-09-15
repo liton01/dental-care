@@ -4,9 +4,9 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function seedOrganization() {
-  const count = await db.organization.count();
+  const count = await prisma.organization.count();
   if (count === 0) {
-    await db.organization.create({
+    await prisma.organization.create({
       data: {
         nameEn: "Mohonto Dental Care",
         nameBn: "Mohonto Dental Care",
