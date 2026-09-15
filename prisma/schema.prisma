@@ -277,3 +277,74 @@ model Organization {
 
   @@map("organization")
 }
+
+// ===== Chart of Accounts (migrated from Oracle) =====
+
+model AccAcParentClass {
+  id         Int          @id @default(autoincrement()) @map("acc_ac_parent_class_id")
+  name       String       @db.VarChar(50)
+  parentCode String       @map("parent_code") @db.Char(1)
+  acClasses  AccAcClass[]
+
+  @@map("acc_ac_parent_class")
+}
+
+model AccAcClass {
+  id            Int              @id @default(autoincrement()) @map("acc_ac_class_id")
+  acCode        String?          @map("ac_code") @db.VarChar(3)
+  className     String?          @map("class_name") @db.VarChar(50)
+  acGroup       String?          @map("ac_group") @db.Char(1)
+  parentClassId Int              @map("acc_ac_parent_class_id")
+  parentClass   AccAcParentClass @relation(fields: [parentClassId], references: [id])
+  mainClasses   AccMainClass[]
+
+  @@map("acc_ac_class")
+}
+
+model AccMainClass {
+  id                  Int           @id @default(autoincrement()) @map("acc_main_class_id")
+  acCode              String?       @map("ac_code") @db.VarChar(3)
+  mainCode            String?       @map("main_code") @db.VarChar(5)
+  mainName            String?       @map("main_name") @db.VarChar(60)
+  acClassId           Int           @map("acc_ac_class_id")
+  acClass             AccAcClass    @relation(fields: [acClassId], references: [id])
+  mcDisplayOrder      Int?          @map("mc_display_order")
+  acDisplayOrder      Int?          @map("ac_display_order")
+  acGroupDisplayOrder Int?          @map("ac_group_display_order")
+  mapClasses          AccMapClass[]
+
+  @@map("acc_main_class")
+}
+
+model AccMapClass {
+  id          Int           @id @default(autoincrement()) @map("acc_map_class_id")
+  mapCode     String?       @map("map_code") @db.Char(4)
+  mapName     String?       @map("map_name") @db.VarChar(100)
+  prntCode    String?       @map("prnt_code") @db.Char(4)
+  acCode      String?       @map("ac_code") @db.VarChar(3)
+  mainCode    String?       @map("main_code") @db.VarChar(5)
+  mainClassId Int           @map("acc_main_class_id")
+  mainClass   AccMainClass  @relation(fields: [mainClassId], references: [id])
+  subClasses  AccSubClass[]
+
+  @@map("acc_map_class")
+}
+
+model AccSubClass {
+  id              Int         @id @default(autoincrement()) @map("acc_sub_class_id")
+  acCode          String?     @map("ac_code") @db.VarChar(3)
+  mainCode        String?     @map("main_code") @db.VarChar(5)
+  subCode         String?     @map("sub_code") @db.VarChar(9)
+  subName         String?     @map("sub_name") @db.VarChar(60)
+  mcode           String?     @db.Char(3)
+  sl              String?     @db.Char(3)
+  mapCode         String?     @map("map_code") @db.Char(4)
+  mapClassId      Int         @map("acc_map_class_id")
+  mapClass        AccMapClass @relation(fields: [mapClassId], references: [id])
+  isDummy         String      @default("N") @map("is_dummy") @db.Char(1)
+  isCheckBal      String?     @default("N") @map("is_check_bal") @db.Char(1)
+  isExclude4Audit String?     @default("N") @map("is_exclude4audit") @db.Char(1)
+  lkNatureId      Int         @default(1585) @map("lk_nature_id")
+
+  @@map("acc_sub_class")
+}

@@ -9,8 +9,17 @@ const items = [
     ["Patients", "/patients", "◉"],
     ["Case History", "/cases/list", "▤"],
     ["Prescriptions", "/prescriptions", "℞"],
-    ["Payments & Accounting", "/payments", "৳"],
     ["Greetings", "/greetings", "✉"],
+];
+
+// Payments & Accounting -> sub groups -> links
+const accountingGroups: [string, [string, string][]][] = [
+    ["Master Data", [
+        ["Chart of Accounts", "/accounting/chart-of-accounts"],
+    ]],
+    ["Transactions", [
+        ["Bill Collection", "/payments"],
+    ]],
 ];
 
 const securityItems = [
@@ -38,6 +47,12 @@ export default function Sidebar({
 
     const [securityOpen, setSecurityOpen] =
         useState(isSecurityActive);
+
+    const isAccountingActive =
+        path.startsWith("/accounting") || path.startsWith("/payments");
+
+    const [accountingOpen, setAccountingOpen] =
+        useState(isAccountingActive);
 
     return (
         <aside
@@ -131,6 +146,108 @@ export default function Sidebar({
                         </Link>
                     );
                 })}
+
+                {/* =================================================
+                    PAYMENTS & ACCOUNTING PARENT MENU
+                ================================================== */}
+                <button
+                    type="button"
+                    onClick={() =>
+                        setAccountingOpen((current) => !current)
+                    }
+                    className={`
+                        flex
+                        w-full
+                        items-center
+                        justify-between
+                        rounded-xl
+                        px-4
+                        py-3
+                        text-sm
+                        transition-colors
+                        ${
+                            isAccountingActive
+                                ? "bg-teal-50 font-semibold text-teal-700"
+                                : "text-slate-600 hover:bg-slate-50"
+                        }
+                    `}
+                >
+                    <span className="flex items-center gap-3">
+                        <span className="w-5 text-center">
+                            ৳
+                        </span>
+
+                        <span>
+                            Payments &amp; Accounting
+                        </span>
+                    </span>
+
+                    <span
+                        className={`
+                            text-xs
+                            transition-transform
+                            duration-200
+                            ${
+                                accountingOpen
+                                    ? "rotate-180"
+                                    : ""
+                            }
+                        `}
+                    >
+                        ▼
+                    </span>
+                </button>
+
+                {/* =================================================
+                    PAYMENTS & ACCOUNTING SUB GROUPS
+                ================================================== */}
+                {accountingOpen && (
+                    <div
+                        className="
+                            ml-4
+                            space-y-1
+                            border-l
+                            border-slate-200
+                            pl-3
+                        "
+                    >
+                        {accountingGroups.map(([group, links]) => (
+                            <div key={group}>
+                                <div className="px-4 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                    {group}
+                                </div>
+
+                                {links.map(([name, href]) => {
+                                    const isActive = path === href;
+
+                                    return (
+                                        <Link
+                                            key={href}
+                                            href={href}
+                                            onClick={onNavigate}
+                                            className={`
+                                                flex
+                                                items-center
+                                                rounded-lg
+                                                px-4
+                                                py-2.5
+                                                text-sm
+                                                transition-colors
+                                                ${
+                                                    isActive
+                                                        ? "bg-teal-50 font-semibold text-teal-700"
+                                                        : "text-slate-600 hover:bg-slate-50"
+                                                }
+                                            `}
+                                        >
+                                            {name}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 {/* =================================================
                     SECURITY PARENT MENU
