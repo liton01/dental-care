@@ -153,7 +153,7 @@ export default function Patients() {
             {/* Patient List */}
             <Card className="p-5">
                 <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end">
-                    <div className="flex-1">
+                    <div className="sm:w-80">
                         <Label>Search</Label>
 
                         <Input
