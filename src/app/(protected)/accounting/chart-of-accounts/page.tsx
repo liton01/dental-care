@@ -3,10 +3,22 @@ import { useEffect, useState } from "react";
 import { Card, Input, Label, Button } from "@/components/ui";
 import { ChevronRight, ChevronDown, RotateCw, ListTree, FolderTree, Plus, Save, Trash2, Eraser } from "lucide-react";
 
-type Sel =
-    | { kind: "ac"; node: any; parentLabel: string }
-    | { kind: "main"; node: any; parentLabel: string }
-    | null;
+// kind of the SELECTED node; childKind = what Add creates under it
+type Kind = "ac" | "main" | "map" | "sub";
+type Sel = { kind: Kind; node: any; parentCode: string } | null;
+
+const childKind: Record<Kind, Kind | null> = {
+    ac: "main",
+    main: "map",
+    map: "sub",
+    sub: null,
+};
+
+const kindLabel: Record<string, string> = {
+    main: "main class",
+    map: "map class",
+    sub: "sub class",
+};
 
 // One expandable row of the tree
 function TreeNode({
@@ -44,7 +56,7 @@ function TreeNode({
                           ? "font-semibold text-teal-800 hover:bg-slate-50"
                           : "hover:bg-slate-50"
                 }`}
-                style={{ paddingLeft: `${level * 22 + 8}px` }}
+                style={{ paddingLeft: `${level * 20 + 8}px` }}
             >
                 <button
                     type="button"
@@ -106,7 +118,6 @@ export default function ChartOfAccounts() {
     const [q, setQ] = useState("");
     const [forceOpen, setForceOpen] = useState<boolean | null>(null);
     const [sel, setSel] = useState<Sel>(null);
-    const [code, setCode] = useState("");
     const [name, setName] = useState("");
     const [err, setErr] = useState("");
 
@@ -121,48 +132,58 @@ export default function ChartOfAccounts() {
 
     const clearEntry = () => {
         setSel(null);
-        setCode("");
         setName("");
         setErr("");
     };
 
-    const selectAc = (ac: any, pc: any) => {
-        setSel({ kind: "ac", node: ac, parentLabel: `${pc.parentCode} — ${pc.name}` });
-        setCode("");
+    const select = (kind: Kind, node: any, parentCode: string) => {
+        setSel({ kind, node, parentCode });
         setName("");
         setErr("");
     };
 
-    const selectMain = (mc: any, ac: any) => {
-        setSel({ kind: "main", node: mc, parentLabel: `${ac.acCode} — ${ac.className}` });
-        setCode(mc.mainCode || "");
-        setName(mc.mainName || "");
-        setErr("");
-    };
+    const ownCode = (s: NonNullable<Sel>) =>
+        s.kind === "ac"
+            ? s.node.acCode
+            : s.kind === "main"
+              ? s.node.mainCode
+              : s.kind === "map"
+                ? s.node.mapCode
+                : s.node.subCode;
+
+    const ownName = (s: NonNullable<Sel>) =>
+        s.kind === "ac"
+            ? s.node.className
+            : s.kind === "main"
+              ? s.node.mainName
+              : s.kind === "map"
+                ? s.node.mapName
+                : s.node.subName;
 
     const doAdd = async () => {
-        if (!sel) return setErr("Select an account class in the tree first.");
-        const acClassId = sel.kind === "ac" ? sel.node.id : sel.node.acClassId;
+        if (!sel) return setErr("Select a node in the tree first.");
+        const kind = childKind[sel.kind];
+        if (!kind) return setErr("Sub classes cannot have children.");
         if (!name.trim()) return setErr("Name is required");
-        if (!code.trim()) return setErr("Code is required");
-        const r = await fetch("/api/accounts/main-class", {
+        const r = await fetch("/api/accounts/coa", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ acClassId, mainCode: code, mainName: name }),
+            body: JSON.stringify({ kind, parentId: sel.node.id, name }),
         });
         if (!r.ok) return setErr((await r.json()).error || "Add failed");
-        clearEntry();
+        setName("");
+        setErr("");
         load();
     };
 
     const doUpdate = async () => {
-        if (sel?.kind !== "main") return setErr("Select a main class in the tree to update.");
+        if (!sel || sel.kind === "ac")
+            return setErr("Select a main, map or sub class to update.");
         if (!name.trim()) return setErr("Name is required");
-        if (!code.trim()) return setErr("Code is required");
-        const r = await fetch(`/api/accounts/main-class/${sel.node.id}`, {
+        const r = await fetch("/api/accounts/coa", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mainCode: code, mainName: name }),
+            body: JSON.stringify({ kind: sel.kind, id: sel.node.id, name }),
         });
         if (!r.ok) return setErr((await r.json()).error || "Update failed");
         clearEntry();
@@ -170,11 +191,13 @@ export default function ChartOfAccounts() {
     };
 
     const doDelete = async () => {
-        if (sel?.kind !== "main") return setErr("Select a main class in the tree to delete.");
-        if (!confirm(`Delete "${sel.node.mainName}"?`)) return;
-        const r = await fetch(`/api/accounts/main-class/${sel.node.id}`, {
-            method: "DELETE",
-        });
+        if (!sel || sel.kind === "ac")
+            return setErr("Select a main, map or sub class to delete.");
+        if (!confirm(`Delete "${ownName(sel)}"?`)) return;
+        const r = await fetch(
+            `/api/accounts/coa?kind=${sel.kind}&id=${sel.node.id}`,
+            { method: "DELETE" }
+        );
         if (!r.ok) return setErr((await r.json()).error || "Delete failed");
         clearEntry();
         load();
@@ -192,7 +215,18 @@ export default function ChartOfAccounts() {
                       .map((ac: any) => {
                           const mainClasses = ac.mainClasses.filter(
                               (mc: any) =>
-                                  match(mc.mainName) || match(mc.mainCode)
+                                  match(mc.mainName) ||
+                                  match(mc.mainCode) ||
+                                  mc.mapClasses.some(
+                                      (mp: any) =>
+                                          match(mp.mapName) ||
+                                          match(mp.mapCode) ||
+                                          mp.subClasses.some(
+                                              (sc: any) =>
+                                                  match(sc.subName) ||
+                                                  match(sc.subCode)
+                                          )
+                                  )
                           );
                           if (match(ac.className) || match(ac.acCode))
                               return ac;
@@ -205,6 +239,8 @@ export default function ChartOfAccounts() {
                   return acClasses.length ? { ...pc, acClasses } : null;
               })
               .filter(Boolean);
+
+    const addTarget = sel ? childKind[sel.kind] : null;
 
     return (
         <div>
@@ -286,13 +322,20 @@ export default function ChartOfAccounts() {
                                             sel?.kind === "ac" &&
                                             sel.node.id === ac.id
                                         }
-                                        onSelect={() => selectAc(ac, pc)}
+                                        onSelect={() =>
+                                            select("ac", ac, pc.parentCode)
+                                        }
                                     >
                                         {ac.mainClasses.map((mc: any) => (
                                             <TreeNode
                                                 key={mc.id}
                                                 label={mc.mainName}
                                                 code={mc.mainCode}
+                                                badge={
+                                                    mc.mapClasses.length
+                                                        ? `${mc.mapClasses.length}`
+                                                        : undefined
+                                                }
                                                 level={2}
                                                 forceOpen={forceOpen}
                                                 selected={
@@ -300,9 +343,70 @@ export default function ChartOfAccounts() {
                                                     sel.node.id === mc.id
                                                 }
                                                 onSelect={() =>
-                                                    selectMain(mc, ac)
+                                                    select(
+                                                        "main",
+                                                        mc,
+                                                        ac.acCode
+                                                    )
                                                 }
-                                            />
+                                            >
+                                                {mc.mapClasses.map(
+                                                    (mp: any) => (
+                                                        <TreeNode
+                                                            key={mp.id}
+                                                            label={mp.mapName}
+                                                            code={mp.mapCode}
+                                                            badge={
+                                                                mp.subClasses
+                                                                    .length
+                                                                    ? `${mp.subClasses.length}`
+                                                                    : undefined
+                                                            }
+                                                            level={3}
+                                                            forceOpen={
+                                                                forceOpen
+                                                            }
+                                                            selected={
+                                                                sel?.kind ===
+                                                                    "map" &&
+                                                                sel.node.id ===
+                                                                    mp.id
+                                                            }
+                                                            onSelect={() =>
+                                                                select(
+                                                                    "map",
+                                                                    mp,
+                                                                    mc.mainCode
+                                                                )
+                                                            }
+                                                        >
+                                                            {mp.subClasses.map(
+                                                                (sc: any) => (
+                                                                    <TreeNode
+                                                                        key={sc.id}
+                                                                        label={sc.subName}
+                                                                        code={sc.subCode}
+                                                                        level={4}
+                                                                        selected={
+                                                                            sel?.kind ===
+                                                                                "sub" &&
+                                                                            sel.node.id ===
+                                                                                sc.id
+                                                                        }
+                                                                        onSelect={() =>
+                                                                            select(
+                                                                                "sub",
+                                                                                sc,
+                                                                                mp.mapCode
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                )
+                                                            )}
+                                                        </TreeNode>
+                                                    )
+                                                )}
+                                            </TreeNode>
                                         ))}
                                     </TreeNode>
                                 ))}
@@ -328,16 +432,10 @@ export default function ChartOfAccounts() {
                             <Label>Parent</Label>
 
                             <Input
-                                value={
-                                    sel
-                                        ? sel.kind === "ac"
-                                            ? `${sel.node.acCode} — ${sel.node.className}`
-                                            : sel.parentLabel
-                                        : ""
-                                }
+                                value={sel ? sel.parentCode || "" : ""}
                                 readOnly
                                 className="bg-slate-50"
-                                placeholder="Select a class in the tree"
+                                placeholder="Select a node in the tree"
                             />
                         </div>
 
@@ -345,9 +443,10 @@ export default function ChartOfAccounts() {
                             <Label>Code</Label>
 
                             <Input
-                                value={code}
-                                onChange={(e) => setCode(e.target.value)}
-                                placeholder="e.g. 10211"
+                                value={sel ? ownCode(sel) || "" : ""}
+                                readOnly
+                                className="bg-slate-50"
+                                placeholder="Auto generated"
                             />
                         </div>
 
@@ -357,7 +456,13 @@ export default function ChartOfAccounts() {
                             <Input
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                placeholder="Main class name"
+                                placeholder={
+                                    sel
+                                        ? addTarget
+                                            ? `New ${kindLabel[addTarget]} name, or new name for "${ownName(sel)}"`
+                                            : `New name for "${ownName(sel)}"`
+                                        : "Name"
+                                }
                             />
                         </div>
 
@@ -368,8 +473,12 @@ export default function ChartOfAccounts() {
                         <div className="flex flex-wrap justify-end gap-2 pt-2">
                             <Button
                                 onClick={doAdd}
-                                disabled={!sel}
-                                title="Add a new main class under the selected class"
+                                disabled={!sel || !addTarget}
+                                title={
+                                    addTarget
+                                        ? `Add a ${kindLabel[addTarget]} under the selected node`
+                                        : "Add"
+                                }
                             >
                                 <Plus size={16} className="mr-1.5" />
                                 Add
@@ -377,8 +486,8 @@ export default function ChartOfAccounts() {
 
                             <Button
                                 onClick={doUpdate}
-                                disabled={sel?.kind !== "main"}
-                                title="Update the selected main class"
+                                disabled={!sel || sel.kind === "ac"}
+                                title="Rename the selected node"
                             >
                                 <Save size={16} className="mr-1.5" />
                                 Update
@@ -395,9 +504,9 @@ export default function ChartOfAccounts() {
                             <Button
                                 variant="secondary"
                                 onClick={doDelete}
-                                disabled={sel?.kind !== "main"}
+                                disabled={!sel || sel.kind === "ac"}
                                 className="!text-red-600"
-                                title="Delete the selected main class"
+                                title="Delete the selected node"
                             >
                                 <Trash2 size={16} className="mr-1.5" />
                                 Delete
@@ -405,10 +514,12 @@ export default function ChartOfAccounts() {
                         </div>
 
                         <p className="pt-2 text-xs text-slate-500">
-                            Select an account class in the tree, then enter a
-                            code and name and press Add to create a main class
-                            under it. Select a main class to update or delete
-                            it.
+                            Select a node in the tree. Type a name and press
+                            Add to create a child under it (AC class → main
+                            class → map class → sub class) with an auto
+                            generated code. Press Update to rename the
+                            selected node, or Delete to remove it. Nodes with
+                            children cannot be deleted.
                         </p>
                     </div>
                 </Card>
