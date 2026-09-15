@@ -124,7 +124,7 @@ export default function ChartOfAccounts() {
     const load = () =>
         fetch("/api/accounts/chart")
             .then((r) => r.json())
-            .then(setTree);
+            .then((d) => setTree(Array.isArray(d) ? d : []));
 
     useEffect(() => {
         load();
@@ -269,17 +269,17 @@ export default function ChartOfAccounts() {
                         <Button
                             variant="secondary"
                             onClick={() => setForceOpen(true)}
-                            title="Expand all"
                         >
-                            <FolderTree size={16} />
+                            <FolderTree size={16} className="mr-1.5" />
+                            Expand All
                         </Button>
 
                         <Button
                             variant="secondary"
                             onClick={() => setForceOpen(false)}
-                            title="Collapse all"
                         >
-                            <ListTree size={16} />
+                            <ListTree size={16} className="mr-1.5" />
+                            Collapse All
                         </Button>
 
                         <Button
@@ -290,7 +290,7 @@ export default function ChartOfAccounts() {
                                 clearEntry();
                                 load();
                             }}
-                            title="Refresh"
+                            title="Reload the tree"
                         >
                             <RotateCw size={16} />
                         </Button>
