@@ -27,6 +27,7 @@
     "twilio": "^5.8.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.17.57",
     "@types/nodemailer": "^6.4.15",
     "@types/react": "^18.3.18",

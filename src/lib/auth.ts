@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
         const user = await db.user.findUnique({ where: { email: credentials.email }, include: { roles: { include: { role: true } } } });
         if (!user || user.status !== "ACTIVE") return null;
         if (!(await bcrypt.compare(credentials.password, user.passwordHash))) return null;
-        return { id: String(user.id), name: user.name, email: user.email, roles: user.roles.map(x => x.role.name) };
+        return { id: String(user.id), name: user.name, email: user.email, roles: user.roles.map((x: any) => x.role.name) };
       }
     })
   ],

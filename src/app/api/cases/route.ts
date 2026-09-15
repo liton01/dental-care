@@ -3,7 +3,19 @@ import { bad, ok, parseBody, requireSession } from "@/lib/api";
 export async function GET(req: Request) {
   if (!await requireSession()) return bad("Unauthorized", 401);
   const { searchParams } = new URL(req.url), patientId = Number(searchParams.get("patientId") || 0);
-  return ok(await db.caseHistory.findMany({ where: patientId ? { patientId } : {}, include: { patient: true, prescriptions: { include: { medicines: true } } }, orderBy: [{ patientId: "asc" }, { caseNo: "asc" }] }));
+  const q = searchParams.get("q")?.trim() ?? "";
+  const where: any = {};
+  if (patientId) where.patientId = patientId;
+  if (q) where.OR = [
+    { problem: { contains: q, mode: "insensitive" } },
+    { treatment: { contains: q, mode: "insensitive" } },
+    { toothNumber: { contains: q, mode: "insensitive" } },
+    { patient: { is: { OR: [
+      { name: { contains: q, mode: "insensitive" } },
+      { patientNo: { contains: q, mode: "insensitive" } },
+    ] } } },
+  ];
+  return ok(await db.caseHistory.findMany({ where, include: { patient: true, prescriptions: { include: { medicines: true } } }, orderBy: [{ patientId: "asc" }, { caseNo: "asc" }] }));
 }
 export async function POST(req: Request) {
   if (!await requireSession()) return bad("Unauthorized", 401);

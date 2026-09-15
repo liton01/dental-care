@@ -2,7 +2,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Textarea, Modal } from "@/components/ui";
-import { Plus, Search, X, UserPlus, Save, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, X, UserPlus, Save, Pencil, ChevronLeft, ChevronRight, FolderOpen } from "lucide-react";
+import { useRouter } from "next/navigation";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -56,6 +57,7 @@ const selectOptions: Record<string, { value: string; label: string }[]> = {
 };
 
 export default function Patients() {
+    const router = useRouter();
     const [items, setItems] = useState<any[]>([]);
     const [q, setQ] = useState("");
     const [genderFilter, setGenderFilter] = useState("");
@@ -148,7 +150,7 @@ export default function Patients() {
     const save = async (e: any) => {
         e.preventDefault();
 
-        await fetch(
+        const res = await fetch(
             editing
                 ? `/api/patients/${editing}`
                 : "/api/patients",
@@ -161,8 +163,16 @@ export default function Patients() {
             }
         );
 
+        const saved = await res.json().catch(() => null);
+
         closeModal();
         load();
+
+        if (!editing && saved?.id) {
+            if (confirm("Patient added. Go to case history now?")) {
+                router.push(`/cases/patient/${saved.id}`);
+            }
+        }
     };
 
     return (
@@ -362,6 +372,19 @@ export default function Patients() {
 
                                     <td className="p-3">
                                         <button
+                                            className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
+                                            onClick={() =>
+                                                router.push(
+                                                    `/cases/patient/${p.id}`
+                                                )
+                                            }
+                                            title="View case history"
+                                            aria-label="View case history"
+                                        >
+                                            <FolderOpen size={16} />
+                                        </button>
+
+                                        <button
                                             className="rounded-lg p-1.5 text-teal-700 hover:bg-teal-50"
                                             onClick={() => openEdit(p)}
                                             title="Edit patient"
@@ -520,7 +543,26 @@ export default function Patients() {
                         </div>
                     ))}
 
-                    <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
+                    <div className="flex items-center justify-between gap-2 pt-2 sm:col-span-2">
+                        <div>
+                            {editing && (
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={() => {
+                                        closeModal();
+                                        router.push(
+                                            `/cases/patient/${editing}`
+                                        );
+                                    }}
+                                >
+                                    <FolderOpen size={16} className="mr-1.5" />
+                                    Case History
+                                </Button>
+                            )}
+                        </div>
+
+                        <div className="flex gap-2">
                         <Button
                             type="button"
                             variant="secondary"
@@ -538,6 +580,7 @@ export default function Patients() {
                             )}
                             {editing ? "Update" : "Register Patient"}
                         </Button>
+                        </div>
                     </div>
                 </form>
             </Modal>

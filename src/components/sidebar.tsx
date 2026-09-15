@@ -7,8 +7,7 @@ import { useState } from "react";
 const items = [
     ["Dashboard", "/dashboard", "▦"],
     ["Patients", "/patients", "◉"],
-    ["Case History", "/cases", "▤"],
-    ["Case List", "/cases/list", "☰"],
+    ["Case History", "/cases/list", "▤"],
     ["Prescriptions", "/prescriptions", "℞"],
     ["Payments & Accounting", "/payments", "৳"],
     ["Greetings", "/greetings", "✉"],
