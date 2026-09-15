@@ -2,7 +2,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Textarea, Modal } from "@/components/ui";
-import { Plus, Search, X, UserPlus, Save } from "lucide-react";
+import { Plus, Search, X, UserPlus, Save, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -61,6 +61,9 @@ export default function Patients() {
     const [genderFilter, setGenderFilter] = useState("");
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [total, setTotal] = useState(0);
     const [form, setForm] = useState<any>(empty);
     const [editing, setEditing] = useState<number | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
@@ -68,21 +71,52 @@ export default function Patients() {
     const load = (
         gender = genderFilter,
         from = dateFrom,
-        to = dateTo
+        to = dateTo,
+        pg = page,
+        ps = pageSize
     ) => {
-        const params = new URLSearchParams({ q });
+        const params = new URLSearchParams({
+            q,
+            page: String(pg),
+            pageSize: String(ps),
+        });
         if (gender) params.set("gender", gender);
         if (from) params.set("dateFrom", from);
         if (to) params.set("dateTo", to);
         fetch("/api/patients?" + params.toString())
             .then((r) => r.json())
-            .then(setItems);
+            .then((d) => {
+                setItems(d.items);
+                setTotal(d.total);
+            });
+    };
+
+    const search = (
+        gender = genderFilter,
+        from = dateFrom,
+        to = dateTo
+    ) => {
+        setPage(1);
+        load(gender, from, to, 1);
+    };
+
+    const goToPage = (pg: number) => {
+        setPage(pg);
+        load(genderFilter, dateFrom, dateTo, pg);
+    };
+
+    const changePageSize = (ps: number) => {
+        setPageSize(ps);
+        setPage(1);
+        load(genderFilter, dateFrom, dateTo, 1, ps);
     };
 
     useEffect(() => {
         load();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     const openNew = () => {
         setEditing(null);
@@ -161,7 +195,7 @@ export default function Patients() {
                             value={q}
                             onChange={(e) => setQ(e.target.value)}
                             onKeyDown={(e) =>
-                                e.key === "Enter" && load()
+                                e.key === "Enter" && search()
                             }
                         />
                     </div>
@@ -174,7 +208,7 @@ export default function Patients() {
                             value={genderFilter}
                             onChange={(e) => {
                                 setGenderFilter(e.target.value);
-                                load(e.target.value);
+                                search(e.target.value);
                             }}
                         >
                             <option value="">All Genders</option>
@@ -192,7 +226,7 @@ export default function Patients() {
                             onChange={(d: Date | null) => {
                                 const v = d ? toYMD(d) : "";
                                 setDateFrom(v);
-                                load(genderFilter, v, dateTo);
+                                search(genderFilter, v, dateTo);
                             }}
                             dateFormat="dd/MM/yyyy"
                             placeholderText="dd/mm/yyyy"
@@ -210,7 +244,7 @@ export default function Patients() {
                             onChange={(d: Date | null) => {
                                 const v = d ? toYMD(d) : "";
                                 setDateTo(v);
-                                load(genderFilter, dateFrom, v);
+                                search(genderFilter, dateFrom, v);
                             }}
                             dateFormat="dd/MM/yyyy"
                             placeholderText="dd/mm/yyyy"
@@ -221,7 +255,7 @@ export default function Patients() {
                         />
                     </div>
 
-                    <Button onClick={() => load()}>
+                    <Button onClick={() => search()}>
                         <Search size={16} className="mr-1.5" />
                         Search
                     </Button>
@@ -328,16 +362,69 @@ export default function Patients() {
 
                                     <td className="p-3">
                                         <button
-                                            className="text-teal-700"
+                                            className="rounded-lg p-1.5 text-teal-700 hover:bg-teal-50"
                                             onClick={() => openEdit(p)}
+                                            title="Edit patient"
+                                            aria-label="Edit patient"
                                         >
-                                            Edit
+                                            <Pencil size={16} />
                                         </button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
+                </div>
+
+                <div className="mt-4 flex flex-col items-center justify-between gap-2 sm:flex-row">
+                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <span>
+                            Showing{" "}
+                            {total === 0
+                                ? 0
+                                : (page - 1) * pageSize + 1}
+                            –{Math.min(page * pageSize, total)} of{" "}
+                            {total}
+                        </span>
+
+                        <select
+                            className="input !w-auto py-1"
+                            value={pageSize}
+                            onChange={(e) =>
+                                changePageSize(Number(e.target.value))
+                            }
+                        >
+                            {[10, 25, 50].map((n) => (
+                                <option key={n} value={n}>
+                                    {n} / page
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                        <button
+                            className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+                            disabled={page <= 1}
+                            onClick={() => goToPage(page - 1)}
+                            title="Previous page"
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
+
+                        <span className="px-2 text-sm">
+                            Page {page} of {totalPages}
+                        </span>
+
+                        <button
+                            className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+                            disabled={page >= totalPages}
+                            onClick={() => goToPage(page + 1)}
+                            title="Next page"
+                        >
+                            <ChevronRight size={18} />
+                        </button>
+                    </div>
                 </div>
             </Card>
 

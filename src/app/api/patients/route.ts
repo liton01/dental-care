@@ -16,6 +16,22 @@ export async function GET(req: Request) {
     if (dateFrom) where.admissionDate.gte = new Date(dateFrom);
     if (dateTo) where.admissionDate.lte = new Date(dateTo + "T23:59:59.999");
   }
+  const pageParam = searchParams.get("page");
+  if (pageParam) {
+    const page = Math.max(1, Number(pageParam) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize")) || 10));
+    const [items, total] = await Promise.all([
+      db.patient.findMany({
+        where,
+        orderBy: { updatedAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: { _count: { select: { caseHistories: true, prescriptions: true, payments: true } } }
+      }),
+      db.patient.count({ where }),
+    ]);
+    return ok({ items, total, page, pageSize });
+  }
   const patients = await db.patient.findMany({
     where,
     orderBy: { updatedAt: "desc" },
