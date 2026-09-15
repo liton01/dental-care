@@ -1,7 +1,26 @@
 import { db } from "@/lib/prisma";
-import { bad, ok, requireSession } from "@/lib/api";
+import { bad, ok, parseBody, requireSession } from "@/lib/api";
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   if (!await requireSession()) return bad("Unauthorized", 401);
   const p = await db.payment.findUnique({ where: { id: Number(params.id) }, include: { patient: true } });
   return p ? ok(p) : bad("Invoice not found", 404);
+}
+
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  if (!await requireSession()) return bad("Unauthorized", 401);
+  const b = await parseBody(req);
+  if (!b?.patientId || b.amount === undefined) return bad("Patient and amount are required.");
+  return ok(await db.payment.update({ where: { id: Number(params.id) }, data: {
+    patientId: Number(b.patientId), description: b.description || null,
+    amount: Number(b.amount), discount: Number(b.discount || 0),
+    paidAmount: Number(b.paidAmount ?? b.amount), type: b.type || "PAYMENT",
+    method: b.method || "CASH",
+    paymentDate: b.paymentDate ? new Date(b.paymentDate) : undefined,
+  }, include: { patient: true } }));
+}
+
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+  if (!await requireSession()) return bad("Unauthorized", 401);
+  await db.payment.delete({ where: { id: Number(params.id) } });
+  return ok({ deleted: true });
 }
