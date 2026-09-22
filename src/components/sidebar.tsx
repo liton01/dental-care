@@ -22,6 +22,10 @@ const accountingGroups: [string, [string, string][]][] = [
     ]],
 ];
 
+const settingsItems = [
+    ["Medicines", "/settings/medicines"],
+];
+
 const securityItems = [
     ["Organization", "/security/organization"],
     ["User", "/security/users"],
@@ -53,6 +57,11 @@ export default function Sidebar({
 
     const [accountingOpen, setAccountingOpen] =
         useState(isAccountingActive);
+
+    const isSettingsActive = path.startsWith("/settings");
+
+    const [settingsOpen, setSettingsOpen] =
+        useState(isSettingsActive);
 
     return (
         <aside
@@ -246,6 +255,100 @@ export default function Sidebar({
                                 })}
                             </div>
                         ))}
+                    </div>
+                )}
+
+                {/* =================================================
+                    SETTINGS PARENT MENU
+                ================================================== */}
+                <button
+                    type="button"
+                    onClick={() =>
+                        setSettingsOpen((current) => !current)
+                    }
+                    className={`
+                        flex
+                        w-full
+                        items-center
+                        justify-between
+                        rounded-xl
+                        px-4
+                        py-3
+                        text-sm
+                        transition-colors
+                        ${
+                            isSettingsActive
+                                ? "bg-teal-50 font-semibold text-teal-700"
+                                : "text-slate-600 hover:bg-slate-50"
+                        }
+                    `}
+                >
+                    <span className="flex items-center gap-3">
+                        <span className="w-5 text-center">
+                            ⚙
+                        </span>
+
+                        <span>
+                            Settings
+                        </span>
+                    </span>
+
+                    <span
+                        className={`
+                            text-xs
+                            transition-transform
+                            duration-200
+                            ${
+                                settingsOpen
+                                    ? "rotate-180"
+                                    : ""
+                            }
+                        `}
+                    >
+                        ▼
+                    </span>
+                </button>
+
+                {/* =================================================
+                    SETTINGS SUB MENU
+                ================================================== */}
+                {settingsOpen && (
+                    <div
+                        className="
+                            ml-4
+                            space-y-1
+                            border-l
+                            border-slate-200
+                            pl-3
+                        "
+                    >
+                        {settingsItems.map(([name, href]) => {
+                            const isActive = path === href;
+
+                            return (
+                                <Link
+                                    key={href}
+                                    href={href}
+                                    onClick={onNavigate}
+                                    className={`
+                                        flex
+                                        items-center
+                                        rounded-lg
+                                        px-4
+                                        py-2.5
+                                        text-sm
+                                        transition-colors
+                                        ${
+                                            isActive
+                                                ? "bg-teal-50 font-semibold text-teal-700"
+                                                : "text-slate-600 hover:bg-slate-50"
+                                        }
+                                    `}
+                                >
+                                    {name}
+                                </Link>
+                            );
+                        })}
                     </div>
                 )}
 

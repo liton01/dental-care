@@ -351,3 +351,19 @@ model AccSubClass {
 
   @@map("acc_sub_class")
 }
+
+model Medicine {
+  id               Int       @id @default(autoincrement())
+  name             String    @db.VarChar(150)
+  strength         String?   @db.VarChar(30)
+  unit             String?   @db.VarChar(30)
+  dosageForm       String?   @db.VarChar(50)
+  manufacturerType String?   @db.VarChar(50)
+  treatmentUse     String?   @db.VarChar(200)
+  createdBy        String?   @db.VarChar(150)
+  createdDate      DateTime  @default(now())
+  updatedBy        String?   @db.VarChar(150)
+  updatedDate      DateTime? @updatedAt
+
+  @@map("medicine")
+}

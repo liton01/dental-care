@@ -96,7 +96,47 @@ async function seedChartOfAccounts() {
   console.log("Seeded chart of accounts");
 }
 
+async function seedMedicines() {
+  const count = await prisma.medicine.count();
+  if (count > 0) return;
+  await prisma.medicine.createMany({
+    data: [
+      { name: "Amoxicillin", strength: "125", unit: "mg/5 mL", dosageForm: "Suspension", manufacturerType: "Local/Imported", treatmentUse: "Pediatric bacterial infection", createdBy: "seed" },
+      { name: "Amoxicillin", strength: "250", unit: "mg/5 mL", dosageForm: "Suspension", manufacturerType: "Local/Imported", treatmentUse: "Pediatric bacterial infection", createdBy: "seed" },
+      { name: "Amoxicillin", strength: "250", unit: "mg", dosageForm: "Capsule", manufacturerType: "Local/Imported", treatmentUse: "Bacterial infection", createdBy: "seed" },
+      { name: "Amoxicillin", strength: "500", unit: "mg", dosageForm: "Capsule", manufacturerType: "Local/Imported", treatmentUse: "Bacterial infection", createdBy: "seed" },
+      { name: "Amoxicillin + Clavulanic Acid", strength: "375", unit: "mg", dosageForm: "Tablet", manufacturerType: "Local/Imported", treatmentUse: "Dental infection", createdBy: "seed" },
+      { name: "Amoxicillin + Clavulanic Acid", strength: "625", unit: "mg", dosageForm: "Tablet", manufacturerType: "Local/Imported", treatmentUse: "Dental infection", createdBy: "seed" },
+      { name: "Metronidazole", strength: "200", unit: "mg/5 mL", dosageForm: "Suspension", manufacturerType: "Local/Imported", treatmentUse: "Anaerobic dental infection", createdBy: "seed" },
+      { name: "Metronidazole", strength: "400", unit: "mg", dosageForm: "Tablet", manufacturerType: "Local/Imported", treatmentUse: "Anaerobic dental infection", createdBy: "seed" },
+      { name: "Metronidazole", strength: "500", unit: "mg", dosageForm: "Tablet", manufacturerType: "Local/Imported", treatmentUse: "Anaerobic dental infection", createdBy: "seed" },
+      { name: "Chlorhexidine", strength: "0.12", unit: "%", dosageForm: "Mouthwash", manufacturerType: "Local/Imported", treatmentUse: "Gingivitis/plaque control", createdBy: "seed" },
+      { name: "Chlorhexidine", strength: "0.20", unit: "%", dosageForm: "Mouthwash", manufacturerType: "Local/Imported", treatmentUse: "Gingivitis/plaque control", createdBy: "seed" },
+      { name: "Chlorhexidine", strength: "1", unit: "%", dosageForm: "Gel", manufacturerType: "Local/Imported", treatmentUse: "Oral antiseptic", createdBy: "seed" },
+      { name: "Chlorhexidine", strength: "2", unit: "%", dosageForm: "Gel", manufacturerType: "Local/Imported", treatmentUse: "Oral antiseptic", createdBy: "seed" },
+      { name: "Paracetamol", strength: "120", unit: "mg/5 mL", dosageForm: "Syrup", manufacturerType: "Local/Imported", treatmentUse: "Dental pain/fever", createdBy: "seed" },
+      { name: "Paracetamol", strength: "250", unit: "mg/5 mL", dosageForm: "Syrup", manufacturerType: "Local/Imported", treatmentUse: "Pediatric pain/fever", createdBy: "seed" },
+      { name: "Paracetamol", strength: "500", unit: "mg", dosageForm: "Tablet", manufacturerType: "Local/Imported", treatmentUse: "Dental pain/fever", createdBy: "seed" },
+      { name: "Ibuprofen", strength: "100", unit: "mg/5 mL", dosageForm: "Suspension", manufacturerType: "Local/Imported", treatmentUse: "Pediatric pain/inflammation", createdBy: "seed" },
+      { name: "Ibuprofen", strength: "200", unit: "mg", dosageForm: "Tablet", manufacturerType: "Local/Imported", treatmentUse: "Dental pain/inflammation", createdBy: "seed" },
+      { name: "Ibuprofen", strength: "400", unit: "mg", dosageForm: "Tablet", manufacturerType: "Local/Imported", treatmentUse: "Dental pain/inflammation", createdBy: "seed" },
+      { name: "Lidocaine", strength: "2", unit: "%", dosageForm: "Gel", manufacturerType: "Local/Imported", treatmentUse: "Topical anesthesia", createdBy: "seed" },
+      { name: "Lidocaine", strength: "2", unit: "%", dosageForm: "Injection", manufacturerType: "Local/Imported", treatmentUse: "Dental local anesthesia", createdBy: "seed" },
+      { name: "Benzocaine", strength: "10", unit: "%", dosageForm: "Gel", manufacturerType: "Local/Imported", treatmentUse: "Oral pain relief", createdBy: "seed" },
+      { name: "Benzocaine", strength: "20", unit: "%", dosageForm: "Gel", manufacturerType: "Local/Imported", treatmentUse: "Oral pain relief", createdBy: "seed" },
+      { name: "Benzydamine", strength: "0.15", unit: "%", dosageForm: "Mouthwash", manufacturerType: "Local/Imported", treatmentUse: "Oral inflammation/pain", createdBy: "seed" },
+      { name: "Miconazole", strength: "2", unit: "%", dosageForm: "Oral Gel", manufacturerType: "Local/Imported", treatmentUse: "Oral candidiasis", createdBy: "seed" },
+      { name: "Nystatin", strength: "100,000", unit: "IU/mL", dosageForm: "Oral Suspension", manufacturerType: "Local/Imported", treatmentUse: "Oral candidiasis", createdBy: "seed" },
+      { name: "Triamcinolone Acetonide", strength: "0.1", unit: "%", dosageForm: "Oral Paste", manufacturerType: "Local/Imported", treatmentUse: "Oral inflammatory lesions", createdBy: "seed" },
+      { name: "Povidone-Iodine", strength: "1", unit: "%", dosageForm: "Gargle/Solution", manufacturerType: "Local/Imported", treatmentUse: "Oral antisepsis", createdBy: "seed" },
+      { name: "Hydrogen Peroxide", strength: "3", unit: "%", dosageForm: "Solution", manufacturerType: "Local/Imported", treatmentUse: "Oral cleansing", createdBy: "seed" },
+    ],
+  });
+  console.log("Seeded medicines");
+}
+
 async function main() {
+  await seedMedicines();
   await seedChartOfAccounts();
   await seedOrganization();
   const permissions = [
