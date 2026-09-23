@@ -31,6 +31,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   await db.accVoucherDetail.deleteMany({ where: { voucherId: id } });
   const v = await db.accVoucher.update({ where: { id }, data: {
     voucherDate: b.voucherDate ? new Date(b.voucherDate) : undefined,
+    voucherType: b.voucherType || undefined,
+    paymentMode: b.paymentMode || null,
     narration: b.narration?.trim() || null,
     updatedBy: session.user?.email || session.user?.name || null,
     details: { create: b.details.map((d: any) => ({

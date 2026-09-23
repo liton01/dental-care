@@ -1,6 +1,5 @@
 import { db } from "@/lib/prisma";
 import { bad, ok, parseBody, requireSession } from "@/lib/api";
-import { generateVoucherForPayment } from "@/lib/vouchers";
 export async function GET(req: Request) {
   if (!await requireSession()) return bad("Unauthorized", 401);
   const sp = new URL(req.url).searchParams;
@@ -16,18 +15,17 @@ export async function GET(req: Request) {
     const page = Math.max(1, Number(pageParam) || 1);
     const pageSize = Math.min(100, Math.max(1, Number(sp.get("pageSize")) || 10));
     const [items, total] = await Promise.all([
-      db.payment.findMany({ where, include: { patient: true, caseHistory: true }, orderBy: { paymentDate: "desc" }, skip: (page - 1) * pageSize, take: pageSize }),
+      db.payment.findMany({ where, include: { patient: true, caseHistory: true, voucher: { select: { id: true, voucherNo: true, isPosted: true } } }, orderBy: { paymentDate: "desc" }, skip: (page - 1) * pageSize, take: pageSize }),
       db.payment.count({ where }),
     ]);
     return ok({ items, total, page, pageSize });
   }
-  return ok(await db.payment.findMany({ where, include: { patient: true, caseHistory: true }, orderBy: { paymentDate: "desc" } }));
+  return ok(await db.payment.findMany({ where, include: { patient: true, caseHistory: true, voucher: { select: { id: true, voucherNo: true, isPosted: true } } }, orderBy: { paymentDate: "desc" } }));
 }
 export async function POST(req: Request) {
   const session = await requireSession();
   if (!session) return bad("Unauthorized", 401);
   const b = await parseBody(req); if (!b?.patientId || b.amount === undefined) return bad("Patient and amount are required.");
   const created = await await db.payment.create({ data: { patientId: Number(b.patientId), description: b.description || null, amount: Number(b.amount), discount: Number(b.discount || 0), paidAmount: Number(b.paidAmount ?? b.amount), type: b.type || "PAYMENT", method: b.method || "CASH", paymentDate: b.paymentDate ? new Date(b.paymentDate) : new Date(), caseHistoryId: b.caseHistoryId ? Number(b.caseHistoryId) : null }, include: { patient: true, caseHistory: true } });
-  await generateVoucherForPayment(created.id, session.user?.email || session.user?.name).catch(() => {});
   return ok(created, 201);
 }

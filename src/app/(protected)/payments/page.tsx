@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Modal, SearchSelect, Pagination } from "@/components/ui";
-import { Plus, X, Save, Pencil, Trash2, RotateCw } from "lucide-react";
+import { Plus, X, Save, Pencil, Trash2, RotateCw, FileCheck2 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -184,6 +184,18 @@ export default function BillCollection() {
         load();
     };
 
+    const finalize = async (p: any) => {
+        if (!confirm(`Finalize ${p.invoiceNo}? A draft journal voucher will be created.`)) return;
+        const r = await fetch(`/api/payments/${p.id}/finalize`, {
+            method: "POST",
+        });
+        if (!r.ok) {
+            alert((await r.json()).error || "Finalize failed");
+            return;
+        }
+        load();
+    };
+
     const pageTotal = items.reduce((s, p) => s + Number(p.paidAmount), 0);
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -298,6 +310,7 @@ export default function BillCollection() {
                                 <th className="p-3">Discount</th>
                                 <th className="p-3">Paid</th>
                                 <th className="p-3">Due</th>
+                                <th className="p-3">Voucher</th>
                                 <th className="p-3">Action</th>
                             </tr>
                         </thead>
@@ -347,6 +360,44 @@ export default function BillCollection() {
                                     </td>
 
                                     <td className="p-3 whitespace-nowrap">
+                                        {p.voucher ? (
+                                            <span
+                                                className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                                                    p.voucher.isPosted === "Y"
+                                                        ? "bg-teal-50 text-teal-700"
+                                                        : "bg-amber-50 text-amber-700"
+                                                }`}
+                                                title={
+                                                    p.voucher.isPosted === "Y"
+                                                        ? "Voucher posted"
+                                                        : "Draft voucher, not posted yet"
+                                                }
+                                            >
+                                                {p.voucher.voucherNo}
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-400">
+                                                -
+                                            </span>
+                                        )}
+                                    </td>
+
+                                    <td className="p-3 whitespace-nowrap">
+                                        {(!p.voucher ||
+                                            p.voucher.isPosted !== "Y") && (
+                                            <button
+                                                className="rounded-lg p-1.5 text-emerald-700 hover:bg-emerald-50"
+                                                onClick={() => finalize(p)}
+                                                title={
+                                                    p.voucher
+                                                        ? "Refresh draft voucher from this transaction"
+                                                        : "Finalize: create draft journal voucher"
+                                                }
+                                            >
+                                                <FileCheck2 size={16} />
+                                            </button>
+                                        )}
+
                                         <button
                                             className="rounded-lg p-1.5 text-teal-700 hover:bg-teal-50"
                                             onClick={() => openEdit(p)}
@@ -369,7 +420,7 @@ export default function BillCollection() {
                             {items.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={11}
+                                        colSpan={12}
                                         className="p-8 text-center text-slate-500"
                                     >
                                         No transactions found

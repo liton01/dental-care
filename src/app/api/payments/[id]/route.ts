@@ -20,7 +20,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     paymentDate: b.paymentDate ? new Date(b.paymentDate) : undefined,
     caseHistoryId: b.caseHistoryId ? Number(b.caseHistoryId) : null,
   }, include: { patient: true, caseHistory: true } });
-  await generateVoucherForPayment(updated.id, session.user?.email || session.user?.name).catch(() => {});
+  const v = await db.accVoucher.findUnique({ where: { paymentId: updated.id } });
+  if (v && v.isPosted !== "Y") {
+    await generateVoucherForPayment(updated.id, session.user?.email || session.user?.name).catch(() => {});
+  }
   return ok(updated);
 }
 

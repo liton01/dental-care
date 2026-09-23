@@ -377,11 +377,15 @@ model Medicine {
 // ===== Journal Vouchers =====
 
 model AccVoucher {
-  id          Int                @id @default(autoincrement())
-  voucherNo   String             @unique @db.VarChar(20)
-  voucherDate DateTime           @default(now())
-  voucherType String             @default("RECEIPT") @db.VarChar(20)
-  narration   String?            @db.VarChar(300)
+  id               Int                @id @default(autoincrement())
+  voucherNo        String             @unique @db.VarChar(20)
+  voucherPostingId String?            @db.VarChar(20)
+  voucherDate      DateTime           @default(now())
+  postingDate      DateTime?
+  isPosted         String             @default("N") @db.Char(1)
+  voucherType      String             @default("Journal") @db.VarChar(40)
+  paymentMode      String?            @db.VarChar(30)
+  narration        String?            @db.VarChar(300)
   paymentId   Int?               @unique
   payment     Payment?           @relation(fields: [paymentId], references: [id], onDelete: SetNull)
   details     AccVoucherDetail[]

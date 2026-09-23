@@ -43,13 +43,24 @@ export async function generateVoucherForPayment(paymentId: number, user?: string
 
   const narration = `${p.type === "REFUND" ? "Refund to" : p.type === "ADVANCE" ? "Advance from" : "Fees collection from"} ${p.patient.name} (${p.invoiceNo})`;
 
+  const isCash = p.method === "CASH";
+  const voucherType =
+    p.type === "REFUND"
+      ? (isCash ? "Cash Payment" : "Bank Payment")
+      : (isCash ? "Cash Receive" : "Bank Receive");
+  const paymentMode =
+    p.method === "CASH" ? "Cash"
+    : p.method === "MOBILE_BANKING" ? "Wallet Transfer"
+    : p.method === "BANK" || p.method === "CARD" ? "Account Transfer"
+    : "Cash";
+
   const existing = await db.accVoucher.findUnique({ where: { paymentId: p.id } });
 
   if (existing) {
     await db.accVoucherDetail.deleteMany({ where: { voucherId: existing.id } });
     return db.accVoucher.update({ where: { id: existing.id }, data: {
       voucherDate: p.paymentDate, narration,
-      voucherType: p.type === "REFUND" ? "PAYMENT" : "RECEIPT",
+      voucherType, paymentMode,
       updatedBy: user || null,
       details: { create: lines },
     }, include: { details: true } });
@@ -59,7 +70,7 @@ export async function generateVoucherForPayment(paymentId: number, user?: string
     const v = await tx.accVoucher.create({ data: {
       voucherNo: `TMP-${Date.now()}`,
       voucherDate: p.paymentDate, narration,
-      voucherType: p.type === "REFUND" ? "PAYMENT" : "RECEIPT",
+      voucherType, paymentMode, isPosted: "N",
       paymentId: p.id, createdBy: user || null,
       details: { create: lines },
     }});

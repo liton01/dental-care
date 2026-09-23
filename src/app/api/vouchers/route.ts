@@ -1,5 +1,7 @@
 import { db } from "@/lib/prisma";
-import { bad, ok, requireSession } from "@/lib/api";
+import { bad, ok, parseBody, requireSession } from "@/lib/api";
+
+const pad = (n: number, w: number) => String(n).padStart(w, "0");
 
 export async function GET(req: Request) {
   if (!await requireSession()) return bad("Unauthorized", 401);
@@ -21,4 +23,41 @@ export async function GET(req: Request) {
     db.accVoucher.count({ where }),
   ]);
   return ok({ items, total, page, pageSize });
+}
+
+export async function POST(req: Request) {
+  const session = await requireSession();
+  if (!session) return bad("Unauthorized", 401);
+  const b = await parseBody(req);
+  if (!Array.isArray(b?.details) || b.details.length < 2) return bad("A voucher needs at least two lines.");
+  let dr = 0, cr = 0;
+  for (const d of b.details) {
+    if (!d.accMainClassId) return bad("Every line needs an account.");
+    const debit = Number(d.debit || 0), credit = Number(d.credit || 0);
+    if (debit < 0 || credit < 0) return bad("Amounts cannot be negative.");
+    if (debit > 0 && credit > 0) return bad("A line cannot have both debit and credit.");
+    if (debit === 0 && credit === 0) return bad("Every line needs a debit or credit amount.");
+    dr += debit; cr += credit;
+  }
+  if (Math.abs(dr - cr) > 0.005) return bad(`Debit (${dr.toFixed(2)}) and credit (${cr.toFixed(2)}) must be equal.`);
+
+  const v = await db.$transaction(async (tx: any) => {
+    const created = await tx.accVoucher.create({ data: {
+      voucherNo: `TMP-${Date.now()}`,
+      voucherDate: b.voucherDate ? new Date(b.voucherDate) : new Date(),
+      voucherType: b.voucherType || "Journal",
+      paymentMode: b.paymentMode || null,
+      narration: b.narration?.trim() || null,
+      isPosted: "N",
+      createdBy: session.user?.email || session.user?.name || null,
+      details: { create: b.details.map((d: any) => ({
+        accMainClassId: Number(d.accMainClassId),
+        debit: Number(d.debit || 0),
+        credit: Number(d.credit || 0),
+        lineNarration: d.lineNarration?.trim() || null,
+      })) },
+    }});
+    return tx.accVoucher.update({ where: { id: created.id }, data: { voucherNo: `JV-${pad(created.id, 6)}` }, include: { details: true } });
+  });
+  return ok(v, 201);
 }

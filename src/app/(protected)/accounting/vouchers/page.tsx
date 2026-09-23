@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Modal, SearchSelect, Pagination } from "@/components/ui";
-import { Search, RotateCw, Eye, Pencil, Trash2, X, Save, Plus } from "lucide-react";
+import { Search, RotateCw, Eye, Pencil, Trash2, X, Save, Plus, CheckCircle2, Undo2 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -18,6 +18,31 @@ const fmtDate = (iso?: string | null) => {
 
 const money = (n: any) => Number(n || 0).toFixed(2);
 
+const VOUCHER_TYPES = [
+    "Cash Payment",
+    "Cash Receive",
+    "Bank Payment",
+    "Bank Receive",
+    "Journal",
+    "Accounts Receivable for Sales",
+    "Accounts Payable For Purchase",
+    "Bill Voucher",
+    "Adjustment Voucher",
+];
+
+const PAYMENT_MODES = ["Cash", "Cheque", "Account Transfer", "Wallet Transfer"];
+
+const emptyForm = {
+    voucherDate: "",
+    voucherType: "Journal",
+    paymentMode: "",
+    narration: "",
+    details: [
+        { accMainClassId: "", debit: "", credit: "", lineNarration: "" },
+        { accMainClassId: "", debit: "", credit: "", lineNarration: "" },
+    ],
+};
+
 export default function JournalVouchers() {
     const [items, setItems] = useState<any[]>([]);
     const [accounts, setAccounts] = useState<any[]>([]);
@@ -25,9 +50,11 @@ export default function JournalVouchers() {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [total, setTotal] = useState(0);
+    const [checked, setChecked] = useState<number[]>([]);
 
     const [viewV, setViewV] = useState<any | null>(null);
-    const [editV, setEditV] = useState<any | null>(null);
+    const [editV, setEditV] = useState<any | null>(null); // voucher being edited, null when adding
+    const [formOpen, setFormOpen] = useState(false);
     const [ef, setEf] = useState<any>(null);
     const [err, setErr] = useState("");
 
@@ -42,13 +69,13 @@ export default function JournalVouchers() {
             .then((d) => {
                 setItems(d.items || []);
                 setTotal(d.total || 0);
+                setChecked([]);
             });
     };
 
     useEffect(() => {
         load();
 
-        // flatten the chart tree into postable accounts
         fetch("/api/accounts/chart")
             .then((r) => r.json())
             .then((tree) => {
@@ -56,8 +83,7 @@ export default function JournalVouchers() {
                 const list: any[] = [];
                 for (const pc of tree)
                     for (const ac of pc.acClasses)
-                        for (const mc of ac.mainClasses)
-                            list.push(mc);
+                        for (const mc of ac.mainClasses) list.push(mc);
                 setAccounts(list);
             });
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -86,11 +112,44 @@ export default function JournalVouchers() {
         cr: v.details.reduce((s: number, d: any) => s + Number(d.credit), 0),
     });
 
+    const toggleCheck = (id: number) =>
+        setChecked((c) =>
+            c.includes(id) ? c.filter((x) => x !== id) : [...c, id]
+        );
+
+    const toggleAll = () =>
+        setChecked((c) =>
+            c.length === items.length ? [] : items.map((v) => v.id)
+        );
+
+    const batch = async (action: "post" | "unpost", ids = checked) => {
+        if (!ids.length) return;
+        const r = await fetch("/api/vouchers/post", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids, action }),
+        });
+        if (!r.ok) {
+            alert((await r.json()).error || "Action failed");
+            return;
+        }
+        load();
+    };
+
+    const openNew = () => {
+        setEditV(null);
+        setErr("");
+        setEf({ ...emptyForm, voucherDate: toYMD(new Date()) });
+        setFormOpen(true);
+    };
+
     const openEdit = (v: any) => {
         setEditV(v);
         setErr("");
         setEf({
             voucherDate: v.voucherDate?.slice(0, 10) || "",
+            voucherType: v.voucherType || "Journal",
+            paymentMode: v.paymentMode || "",
             narration: v.narration || "",
             details: v.details.map((d: any) => ({
                 accMainClassId: String(d.accMainClassId),
@@ -99,6 +158,13 @@ export default function JournalVouchers() {
                 lineNarration: d.lineNarration || "",
             })),
         });
+        setFormOpen(true);
+    };
+
+    const closeForm = () => {
+        setFormOpen(false);
+        setEditV(null);
+        setEf(null);
     };
 
     const setLine = (i: number, k: string, v: string) => {
@@ -107,19 +173,21 @@ export default function JournalVouchers() {
         setEf({ ...ef, details });
     };
 
-    const saveEdit = async (e: any) => {
+    const saveForm = async (e: any) => {
         e.preventDefault();
-        const r = await fetch(`/api/vouchers/${editV.id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(ef),
-        });
+        const r = await fetch(
+            editV ? `/api/vouchers/${editV.id}` : "/api/vouchers",
+            {
+                method: editV ? "PATCH" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(ef),
+            }
+        );
         if (!r.ok) {
             setErr((await r.json()).error || "Save failed");
             return;
         }
-        setEditV(null);
-        setEf(null);
+        closeForm();
         load();
     };
 
@@ -138,18 +206,24 @@ export default function JournalVouchers() {
 
     return (
         <div>
-            <div className="mb-4">
-                <h1 className="text-2xl font-bold">Journal Vouchers</h1>
+            <div className="mb-4 flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold">Journal Vouchers</h1>
 
-                <p className="text-sm text-slate-500">
-                    Vouchers generated from bill collection and manual
-                    adjustments.
-                </p>
+                    <p className="text-sm text-slate-500">
+                        Vouchers from bill collection and manual entries.
+                    </p>
+                </div>
+
+                <Button onClick={openNew}>
+                    <Plus size={16} className="mr-1.5" />
+                    New Voucher
+                </Button>
             </div>
 
             <Card className="p-5">
                 <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end">
-                    <div className="sm:w-80">
+                    <div className="sm:w-72">
                         <Label>Search</Label>
 
                         <Input
@@ -176,17 +250,51 @@ export default function JournalVouchers() {
                         <RotateCw size={16} className="mr-1.5" />
                         Refresh
                     </Button>
+
+                    <div className="flex-1" />
+
+                    <Button
+                        onClick={() => batch("post")}
+                        disabled={!checked.length}
+                        title="Post the selected vouchers"
+                    >
+                        <CheckCircle2 size={16} className="mr-1.5" />
+                        Post Selected ({checked.length})
+                    </Button>
+
+                    <Button
+                        variant="secondary"
+                        onClick={() => batch("unpost")}
+                        disabled={!checked.length}
+                        title="Unpost the selected vouchers"
+                    >
+                        <Undo2 size={16} className="mr-1.5" />
+                        Unpost Selected
+                    </Button>
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead>
                             <tr className="border-b text-slate-500">
+                                <th className="p-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={
+                                            items.length > 0 &&
+                                            checked.length === items.length
+                                        }
+                                        onChange={toggleAll}
+                                    />
+                                </th>
                                 <th className="p-3">Voucher No</th>
+                                <th className="p-3">Posting Id</th>
                                 <th className="p-3">Date</th>
+                                <th className="p-3">Posting Date</th>
                                 <th className="p-3">Type</th>
+                                <th className="p-3">Mode</th>
                                 <th className="p-3">Narration</th>
-                                <th className="p-3">Patient</th>
+                                <th className="p-3">Posted</th>
                                 <th className="p-3 text-right">Debit</th>
                                 <th className="p-3 text-right">Credit</th>
                                 <th className="p-3">Action</th>
@@ -199,24 +307,58 @@ export default function JournalVouchers() {
 
                                 return (
                                     <tr key={v.id} className="border-b">
+                                        <td className="p-3">
+                                            <input
+                                                type="checkbox"
+                                                checked={checked.includes(v.id)}
+                                                onChange={() =>
+                                                    toggleCheck(v.id)
+                                                }
+                                            />
+                                        </td>
+
                                         <td className="p-3 font-medium">
                                             {v.voucherNo}
+                                        </td>
+
+                                        <td className="p-3">
+                                            {v.voucherPostingId || "-"}
                                         </td>
 
                                         <td className="p-3 whitespace-nowrap">
                                             {fmtDate(v.voucherDate)}
                                         </td>
 
-                                        <td className="p-3">
+                                        <td className="p-3 whitespace-nowrap">
+                                            {v.isPosted === "Y"
+                                                ? fmtDate(v.postingDate)
+                                                : "-"}
+                                        </td>
+
+                                        <td className="p-3 whitespace-nowrap">
                                             {v.voucherType}
                                         </td>
 
-                                        <td className="p-3 max-w-[280px] truncate" title={v.narration || ""}>
+                                        <td className="p-3 whitespace-nowrap">
+                                            {v.paymentMode || "-"}
+                                        </td>
+
+                                        <td className="p-3 max-w-[220px] truncate" title={v.narration || ""}>
                                             {v.narration || "-"}
                                         </td>
 
                                         <td className="p-3">
-                                            {v.payment?.patient?.name || "-"}
+                                            <span
+                                                className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                                                    v.isPosted === "Y"
+                                                        ? "bg-teal-50 text-teal-700"
+                                                        : "bg-amber-50 text-amber-700"
+                                                }`}
+                                            >
+                                                {v.isPosted === "Y"
+                                                    ? "Posted"
+                                                    : "Unposted"}
+                                            </span>
                                         </td>
 
                                         <td className="p-3 text-right">
@@ -258,10 +400,10 @@ export default function JournalVouchers() {
 
                             {items.length === 0 && (
                                 <tr>
-                                    <td colSpan={8} className="p-8 text-center text-slate-500">
-                                        No vouchers yet. They are created
-                                        automatically when you save a bill
-                                        collection transaction.
+                                    <td colSpan={12} className="p-8 text-center text-slate-500">
+                                        No vouchers yet. Finalize a bill
+                                        collection transaction or create one
+                                        manually.
                                     </td>
                                 </tr>
                             )}
@@ -317,6 +459,22 @@ export default function JournalVouchers() {
                             <div>
                                 <span className="text-slate-500">Type: </span>
                                 {viewV.voucherType}
+                            </div>
+
+                            <div>
+                                <span className="text-slate-500">
+                                    Payment Mode:{" "}
+                                </span>
+                                {viewV.paymentMode || "-"}
+                            </div>
+
+                            <div>
+                                <span className="text-slate-500">
+                                    Posted:{" "}
+                                </span>
+                                {viewV.isPosted === "Y"
+                                    ? `Yes · ${viewV.voucherPostingId || ""} · ${fmtDate(viewV.postingDate)}`
+                                    : "No"}
                             </div>
 
                             <div className="col-span-2">
@@ -383,6 +541,31 @@ export default function JournalVouchers() {
                             </tbody>
                         </table>
 
+                        <div className="flex justify-end gap-2">
+                            {viewV.isPosted === "Y" ? (
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => {
+                                        batch("unpost", [viewV.id]);
+                                        setViewV(null);
+                                    }}
+                                >
+                                    <Undo2 size={16} className="mr-1.5" />
+                                    Unpost
+                                </Button>
+                            ) : (
+                                <Button
+                                    onClick={() => {
+                                        batch("post", [viewV.id]);
+                                        setViewV(null);
+                                    }}
+                                >
+                                    <CheckCircle2 size={16} className="mr-1.5" />
+                                    Post
+                                </Button>
+                            )}
+                        </div>
+
                         <div className="text-xs text-slate-500">
                             Created {fmtDate(viewV.createdDate)}
                             {viewV.createdBy ? ` · ${viewV.createdBy}` : ""}
@@ -394,17 +577,14 @@ export default function JournalVouchers() {
                 )}
             </Modal>
 
-            {/* Edit */}
+            {/* Add / Edit */}
             <Modal
-                open={!!editV}
-                title={editV ? `Edit Voucher ${editV.voucherNo}` : ""}
-                onClose={() => {
-                    setEditV(null);
-                    setEf(null);
-                }}
+                open={formOpen}
+                title={editV ? `Edit Voucher ${editV.voucherNo}` : "New Voucher"}
+                onClose={closeForm}
             >
                 {ef && (
-                    <form onSubmit={saveEdit} className="space-y-3">
+                    <form onSubmit={saveForm} className="space-y-3">
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <div>
                                 <Label>Voucher Date</Label>
@@ -427,19 +607,65 @@ export default function JournalVouchers() {
                                 />
                             </div>
 
-                            <div className="sm:col-span-2">
-                                <Label>Narration</Label>
+                            <div>
+                                <Label>Voucher Type</Label>
 
-                                <Input
-                                    value={ef.narration}
+                                <select
+                                    className="input"
+                                    value={ef.voucherType}
                                     onChange={(e) =>
                                         setEf({
                                             ...ef,
-                                            narration: e.target.value,
+                                            voucherType: e.target.value,
                                         })
                                     }
-                                />
+                                >
+                                    {VOUCHER_TYPES.map((t) => (
+                                        <option key={t} value={t}>{t}</option>
+                                    ))}
+                                </select>
                             </div>
+
+                            <div>
+                                <Label>Payment Mode</Label>
+
+                                <select
+                                    className="input"
+                                    value={ef.paymentMode}
+                                    onChange={(e) =>
+                                        setEf({
+                                            ...ef,
+                                            paymentMode: e.target.value,
+                                        })
+                                    }
+                                >
+                                    <option value="">Select</option>
+
+                                    {PAYMENT_MODES.map((m) => (
+                                        <option key={m} value={m}>{m}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {editV && (
+                                <div>
+                                    <Label>Posting Status</Label>
+
+                                    <div className="pt-1.5">
+                                        <span
+                                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                                                editV.isPosted === "Y"
+                                                    ? "bg-teal-50 text-teal-700"
+                                                    : "bg-amber-50 text-amber-700"
+                                            }`}
+                                        >
+                                            {editV.isPosted === "Y"
+                                                ? `Posted · ${editV.voucherPostingId || ""} · ${fmtDate(editV.postingDate)}`
+                                                : "Unposted"}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {ef.details.map((d: any, i: number) => (
@@ -557,25 +783,67 @@ export default function JournalVouchers() {
                             </span>
                         </div>
 
+                        <div>
+                            <Label>Narration</Label>
+
+                            <Input
+                                value={ef.narration}
+                                onChange={(e) =>
+                                    setEf({
+                                        ...ef,
+                                        narration: e.target.value,
+                                    })
+                                }
+                            />
+                        </div>
+
                         {err && <p className="text-sm text-red-600">{err}</p>}
 
-                        <div className="flex justify-end gap-2 pt-2">
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                onClick={() => {
-                                    setEditV(null);
-                                    setEf(null);
-                                }}
-                            >
-                                <X size={16} className="mr-1.5" />
-                                Cancel
-                            </Button>
+                        <div className="flex items-center justify-between gap-2 pt-2">
+                            <div>
+                                {editV &&
+                                    (editV.isPosted === "Y" ? (
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            onClick={() => {
+                                                batch("unpost", [editV.id]);
+                                                closeForm();
+                                            }}
+                                        >
+                                            <Undo2 size={16} className="mr-1.5" />
+                                            Unpost
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            onClick={() => {
+                                                batch("post", [editV.id]);
+                                                closeForm();
+                                            }}
+                                        >
+                                            <CheckCircle2 size={16} className="mr-1.5" />
+                                            Post
+                                        </Button>
+                                    ))}
+                            </div>
 
-                            <Button type="submit">
-                                <Save size={16} className="mr-1.5" />
-                                Update Voucher
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={closeForm}
+                                >
+                                    <X size={16} className="mr-1.5" />
+                                    Cancel
+                                </Button>
+
+                                <Button type="submit">
+                                    <Save size={16} className="mr-1.5" />
+                                    {editV ? "Update Voucher" : "Save Voucher"}
+                                </Button>
+                            </div>
                         </div>
                     </form>
                 )}
