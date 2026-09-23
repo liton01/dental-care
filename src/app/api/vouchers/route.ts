@@ -10,8 +10,15 @@ export async function GET(req: Request) {
   const where: any = {};
   if (q) where.OR = [
     { voucherNo: { contains: q, mode: "insensitive" } },
+    { voucherPostingId: { contains: q, mode: "insensitive" } },
     { narration: { contains: q, mode: "insensitive" } },
   ];
+  const voucherType = sp.get("voucherType")?.trim() ?? "";
+  if (voucherType) where.voucherType = voucherType;
+  const isPosted = sp.get("isPosted")?.trim() ?? "";
+  if (isPosted) where.isPosted = isPosted;
+  const patientId = Number(sp.get("patientId") || 0);
+  if (patientId) where.payment = { is: { patientId } };
   const page = Math.max(1, Number(sp.get("page")) || 1);
   const pageSize = Math.min(100, Math.max(1, Number(sp.get("pageSize")) || 10));
   const include = {

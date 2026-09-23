@@ -47,6 +47,10 @@ export default function JournalVouchers() {
     const [items, setItems] = useState<any[]>([]);
     const [accounts, setAccounts] = useState<any[]>([]);
     const [q, setQ] = useState("");
+    const [fltType, setFltType] = useState("");
+    const [fltPosted, setFltPosted] = useState("");
+    const [fltPatient, setFltPatient] = useState("");
+    const [patients, setPatients] = useState<any[]>([]);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [total, setTotal] = useState(0);
@@ -58,12 +62,22 @@ export default function JournalVouchers() {
     const [ef, setEf] = useState<any>(null);
     const [err, setErr] = useState("");
 
-    const load = (query = q, pg = page, ps = pageSize) => {
+    const load = (
+        query = q,
+        type = fltType,
+        posted = fltPosted,
+        pid = fltPatient,
+        pg = page,
+        ps = pageSize
+    ) => {
         const params = new URLSearchParams({
             page: String(pg),
             pageSize: String(ps),
         });
         if (query.trim()) params.set("q", query.trim());
+        if (type) params.set("voucherType", type);
+        if (posted) params.set("isPosted", posted);
+        if (pid) params.set("patientId", pid);
         fetch("/api/vouchers?" + params.toString())
             .then((r) => r.json())
             .then((d) => {
@@ -75,6 +89,10 @@ export default function JournalVouchers() {
 
     useEffect(() => {
         load();
+
+        fetch("/api/patients")
+            .then((r) => r.json())
+            .then((d) => setPatients(Array.isArray(d) ? d : []));
 
         fetch("/api/accounts/chart")
             .then((r) => r.json())
@@ -89,20 +107,25 @@ export default function JournalVouchers() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const search = () => {
+    const search = (
+        query = q,
+        type = fltType,
+        posted = fltPosted,
+        pid = fltPatient
+    ) => {
         setPage(1);
-        load(q, 1);
+        load(query, type, posted, pid, 1);
     };
 
     const goToPage = (pg: number) => {
         setPage(pg);
-        load(q, pg);
+        load(q, fltType, fltPosted, fltPatient, pg);
     };
 
     const changePageSize = (ps: number) => {
         setPageSize(ps);
         setPage(1);
-        load(q, 1, ps);
+        load(q, fltType, fltPosted, fltPatient, 1, ps);
     };
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -222,19 +245,75 @@ export default function JournalVouchers() {
             </div>
 
             <Card className="p-5">
-                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end">
-                    <div className="sm:w-72">
-                        <Label>Search</Label>
+                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+                    <div className="sm:w-56">
+                        <Label>Voucher No / Posting Id</Label>
 
                         <Input
-                            placeholder="Voucher no or narration..."
+                            placeholder="JV-000001, P-000001..."
                             value={q}
                             onChange={(e) => setQ(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && search()}
                         />
                     </div>
 
-                    <Button onClick={search}>
+                    <div className="sm:w-56">
+                        <Label>Voucher Type</Label>
+
+                        <select
+                            className="input"
+                            value={fltType}
+                            onChange={(e) => {
+                                setFltType(e.target.value);
+                                search(q, e.target.value);
+                            }}
+                        >
+                            <option value="">All Types</option>
+
+                            {VOUCHER_TYPES.map((t) => (
+                                <option key={t} value={t}>{t}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="sm:w-40">
+                        <Label>Posting Status</Label>
+
+                        <select
+                            className="input"
+                            value={fltPosted}
+                            onChange={(e) => {
+                                setFltPosted(e.target.value);
+                                search(q, fltType, e.target.value);
+                            }}
+                        >
+                            <option value="">All</option>
+                            <option value="Y">Posted</option>
+                            <option value="N">Unposted</option>
+                        </select>
+                    </div>
+
+                    <div className="sm:w-56">
+                        <Label>Patient</Label>
+
+                        <SearchSelect
+                            options={[
+                                { value: "", label: "All Patients" },
+                                ...patients.map((p) => ({
+                                    value: String(p.id),
+                                    label: `${p.name} — ${p.phone}`,
+                                })),
+                            ]}
+                            value={fltPatient}
+                            onChange={(v) => {
+                                setFltPatient(v);
+                                search(q, fltType, fltPosted, v);
+                            }}
+                            placeholder="All Patients"
+                        />
+                    </div>
+
+                    <Button onClick={() => search()}>
                         <Search size={16} className="mr-1.5" />
                         Search
                     </Button>
@@ -243,8 +322,11 @@ export default function JournalVouchers() {
                         variant="secondary"
                         onClick={() => {
                             setQ("");
+                            setFltType("");
+                            setFltPosted("");
+                            setFltPatient("");
                             setPage(1);
-                            load("", 1);
+                            load("", "", "", "", 1);
                         }}
                     >
                         <RotateCw size={16} className="mr-1.5" />
