@@ -104,19 +104,22 @@ model Prescription {
   notes          String?
   patient        Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
   caseHistory    CaseHistory     @relation(fields: [caseHistoryId], references: [id], onDelete: Cascade)
-  medicines      PrescriptionMedicine[]
+  items          PrescriptionItem[]
   @@index([patientId])
   @@index([caseHistoryId])
 }
 
-model PrescriptionMedicine {
+model PrescriptionItem {
   id             Int          @id @default(autoincrement())
   prescriptionId Int
-  medicineName   String
+  medicineId     Int
   dosage         String
   duration       String
   instructions   String?
   prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  medicine       Medicine     @relation(fields: [medicineId], references: [id])
+
+  @@map("prescription_item")
 }
 
 model Payment {
@@ -364,6 +367,7 @@ model Medicine {
   createdDate      DateTime  @default(now())
   updatedBy        String?   @db.VarChar(150)
   updatedDate      DateTime? @updatedAt
+  prescriptionItems PrescriptionItem[]
 
   @@map("medicine")
 }

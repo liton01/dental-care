@@ -15,7 +15,7 @@ export async function GET(req: Request) {
       { patientNo: { contains: q, mode: "insensitive" } },
     ] } } },
   ];
-  return ok(await db.caseHistory.findMany({ where, include: { patient: true, prescriptions: { include: { medicines: true } } }, orderBy: [{ patientId: "asc" }, { caseNo: "asc" }] }));
+  return ok(await db.caseHistory.findMany({ where, include: { patient: true, prescriptions: true }, orderBy: [{ patientId: "asc" }, { caseNo: "asc" }] }));
 }
 export async function POST(req: Request) {
   if (!await requireSession()) return bad("Unauthorized", 401);

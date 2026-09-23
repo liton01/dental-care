@@ -2,7 +2,7 @@ import { db } from "@/lib/prisma";
 import { bad, ok, parseBody, requireSession } from "@/lib/api";
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   if (!await requireSession()) return bad("Unauthorized", 401);
-  const patient = await db.patient.findUnique({ where: { id: Number(params.id) }, include: { caseHistories: { orderBy: { caseNo: "asc" } }, prescriptions: { include: { medicines: true, caseHistory: true }, orderBy: { prescribedAt: "desc" } }, payments: { orderBy: { paymentDate: "desc" } }, appointments: { orderBy: { appointmentAt: "asc" } } } });
+  const patient = await db.patient.findUnique({ where: { id: Number(params.id) }, include: { caseHistories: { orderBy: { caseNo: "asc" } }, prescriptions: { include: { items: { include: { medicine: true } }, caseHistory: true }, orderBy: { prescribedAt: "desc" } }, payments: { orderBy: { paymentDate: "desc" } }, appointments: { orderBy: { appointmentAt: "asc" } } } });
   return patient ? ok(patient) : bad("Patient not found", 404);
 }
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {

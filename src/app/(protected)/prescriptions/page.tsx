@@ -2,12 +2,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, Input, Label, Button } from "@/components/ui";
+import { Card, Input, Label, Button, SearchSelect } from "@/components/ui";
 
 export default function Prescriptions() {
     const [patients, setPatients] = useState<any[]>([]);
     const [cases, setCases] = useState<any[]>([]);
     const [items, setItems] = useState<any[]>([]);
+    const [medicineList, setMedicineList] = useState<any[]>([]);
 
     const [f, setF] = useState<any>({
         patientId: "",
@@ -16,7 +17,7 @@ export default function Prescriptions() {
         notes: "",
         medicines: [
             {
-                medicineName: "",
+                medicineId: "",
                 dosage: "",
                 duration: "",
                 instructions: "",
@@ -34,6 +35,10 @@ export default function Prescriptions() {
         fetch("/api/patients")
             .then((r) => r.json())
             .then(setPatients);
+
+        fetch("/api/medicines")
+            .then((r) => r.json())
+            .then((d) => setMedicineList(Array.isArray(d) ? d : []));
 
         load();
     }, []);
@@ -196,8 +201,24 @@ export default function Prescriptions() {
                                         Medicine {i + 1}
                                     </div>
 
+                                    <div className="mb-2">
+                                        <SearchSelect
+                                            options={medicineList.map(
+                                                (md: any) => ({
+                                                    value: String(md.id),
+                                                    label: `${md.name}${md.strength ? ` ${md.strength} ${md.unit || ""}` : ""}${md.dosageForm ? ` (${md.dosageForm})` : ""}`,
+                                                })
+                                            )}
+                                            value={m.medicineId}
+                                            onChange={(v) =>
+                                                med(i, "medicineId", v)
+                                            }
+                                            placeholder="Search medicine..."
+                                            required
+                                        />
+                                    </div>
+
                                     {[
-                                        "medicineName",
                                         "dosage",
                                         "duration",
                                         "instructions",
@@ -207,7 +228,8 @@ export default function Prescriptions() {
                                                 key={k}
                                                 className="mb-2"
                                                 placeholder={
-                                                    k
+                                                    k.charAt(0).toUpperCase() +
+                                                    k.slice(1)
                                                 }
                                                 value={
                                                     m[k]
@@ -245,13 +267,10 @@ export default function Prescriptions() {
                                         medicines: [
                                             ...f.medicines,
                                             {
-                                                medicineName:
-                                                    "",
+                                                medicineId: "",
                                                 dosage: "",
-                                                duration:
-                                                    "",
-                                                instructions:
-                                                    "",
+                                                duration: "",
+                                                instructions: "",
                                             },
                                         ],
                                     })
@@ -293,16 +312,17 @@ export default function Prescriptions() {
                                 </div>
 
                                 <div className="mt-2 text-sm">
-                                    {p.medicines.map(
+                                    {(p.items || []).map(
                                         (m: any) => (
                                             <div
                                                 key={m.id}
                                                 className="flex justify-between border-b py-1"
                                             >
                                                 <span>
-                                                    {
-                                                        m.medicineName
-                                                    }
+                                                    {m.medicine?.name}
+                                                    {m.medicine?.strength
+                                                        ? ` ${m.medicine.strength} ${m.medicine.unit || ""}`
+                                                        : ""}
                                                 </span>
 
                                                 <span>
