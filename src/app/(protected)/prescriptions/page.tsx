@@ -2,13 +2,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, Input, Label, Button, SearchSelect } from "@/components/ui";
+import { Card, Input, Label, Button, SearchSelect, Pagination } from "@/components/ui";
 
 export default function Prescriptions() {
     const [patients, setPatients] = useState<any[]>([]);
     const [cases, setCases] = useState<any[]>([]);
     const [items, setItems] = useState<any[]>([]);
     const [medicineList, setMedicineList] = useState<any[]>([]);
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [total, setTotal] = useState(0);
 
     const [f, setF] = useState<any>({
         patientId: "",
@@ -25,10 +28,24 @@ export default function Prescriptions() {
         ],
     });
 
-    const load = () => {
-        fetch("/api/prescriptions")
+    const load = (pg = page, ps = pageSize) => {
+        fetch(`/api/prescriptions?page=${pg}&pageSize=${ps}`)
             .then((r) => r.json())
-            .then(setItems);
+            .then((d) => {
+                setItems(d.items || []);
+                setTotal(d.total || 0);
+            });
+    };
+
+    const goToPage = (pg: number) => {
+        setPage(pg);
+        load(pg);
+    };
+
+    const changePageSize = (ps: number) => {
+        setPageSize(ps);
+        setPage(1);
+        load(1, ps);
     };
 
     useEffect(() => {
@@ -82,6 +99,8 @@ export default function Prescriptions() {
             medicines,
         });
     };
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     return (
         <div>
@@ -349,6 +368,36 @@ export default function Prescriptions() {
                             </div>
                         ))}
                     </div>
+
+                <div className="mt-4 flex flex-col items-center justify-between gap-2 sm:flex-row">
+                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <span>
+                            Showing{" "}
+                            {total === 0 ? 0 : (page - 1) * pageSize + 1}
+                            –{Math.min(page * pageSize, total)} of {total}
+                        </span>
+
+                        <select
+                            className="input !w-auto py-1"
+                            value={pageSize}
+                            onChange={(e) =>
+                                changePageSize(Number(e.target.value))
+                            }
+                        >
+                            {[10, 25, 50].map((n) => (
+                                <option key={n} value={n}>
+                                    {n} / page
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <Pagination
+                        page={page}
+                        totalPages={totalPages}
+                        onPage={goToPage}
+                    />
+                </div>
                 </Card>
             </div>
         </div>

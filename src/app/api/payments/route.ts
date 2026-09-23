@@ -10,6 +10,16 @@ export async function GET(req: Request) {
   if (patientId) where.patientId = patientId;
   if (type) where.type = type;
   if (method) where.method = method;
+  const pageParam = sp.get("page");
+  if (pageParam) {
+    const page = Math.max(1, Number(pageParam) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(sp.get("pageSize")) || 10));
+    const [items, total] = await Promise.all([
+      db.payment.findMany({ where, include: { patient: true, caseHistory: true }, orderBy: { paymentDate: "desc" }, skip: (page - 1) * pageSize, take: pageSize }),
+      db.payment.count({ where }),
+    ]);
+    return ok({ items, total, page, pageSize });
+  }
   return ok(await db.payment.findMany({ where, include: { patient: true, caseHistory: true }, orderBy: { paymentDate: "desc" } }));
 }
 export async function POST(req: Request) {

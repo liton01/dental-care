@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Card, Input, Label, Button, Textarea, Modal } from "@/components/ui";
+import { Card, Input, Label, Button, Textarea, Modal, Pagination } from "@/components/ui";
 import { Plus, X, Save, Pencil, Trash2 } from "lucide-react";
 
 const empty = {
@@ -43,11 +43,28 @@ export default function Organization() {
     const [form, setForm] = useState<any>(empty);
     const [editing, setEditing] = useState<number | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [total, setTotal] = useState(0);
 
-    const load = () =>
-        fetch("/api/organization")
+    const load = (pg = page, ps = pageSize) =>
+        fetch(`/api/organization?page=${pg}&pageSize=${ps}`)
             .then((r) => r.json())
-            .then(setItems);
+            .then((d) => {
+                setItems(d.items || []);
+                setTotal(d.total || 0);
+            });
+
+    const goToPage = (pg: number) => {
+        setPage(pg);
+        load(pg);
+    };
+
+    const changePageSize = (ps: number) => {
+        setPageSize(ps);
+        setPage(1);
+        load(1, ps);
+    };
 
     useEffect(() => {
         load();
@@ -94,6 +111,8 @@ export default function Organization() {
         await fetch(`/api/organization/${o.id}`, { method: "DELETE" });
         load();
     };
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     return (
         <div>
@@ -190,6 +209,36 @@ export default function Organization() {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                <div className="mt-4 flex flex-col items-center justify-between gap-2 sm:flex-row">
+                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <span>
+                            Showing{" "}
+                            {total === 0 ? 0 : (page - 1) * pageSize + 1}
+                            –{Math.min(page * pageSize, total)} of {total}
+                        </span>
+
+                        <select
+                            className="input !w-auto py-1"
+                            value={pageSize}
+                            onChange={(e) =>
+                                changePageSize(Number(e.target.value))
+                            }
+                        >
+                            {[10, 25, 50].map((n) => (
+                                <option key={n} value={n}>
+                                    {n} / page
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <Pagination
+                        page={page}
+                        totalPages={totalPages}
+                        onPage={goToPage}
+                    />
                 </div>
             </Card>
 

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Input, Label, Button, SearchSelect } from "@/components/ui";
+import { Card, Input, Label, Button, SearchSelect, Pagination } from "@/components/ui";
 import { Plus, Search, RotateCw, Pencil, Trash2, FolderOpen } from "lucide-react";
 import CaseFormModal from "@/components/case-form-modal";
 
@@ -26,14 +26,44 @@ export default function CaseHistoryList() {
     const [patientId, setPatientId] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
     const [editingCase, setEditingCase] = useState<any | null>(null);
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [total, setTotal] = useState(0);
 
-    const load = (pid = patientId, query = q) => {
-        const params = new URLSearchParams();
+    const load = (
+        pid = patientId,
+        query = q,
+        pg = page,
+        ps = pageSize
+    ) => {
+        const params = new URLSearchParams({
+            page: String(pg),
+            pageSize: String(ps),
+        });
         if (query.trim()) params.set("q", query.trim());
         if (pid) params.set("patientId", pid);
         fetch("/api/cases?" + params.toString())
             .then((r) => r.json())
-            .then(setItems);
+            .then((d) => {
+                setItems(d.items || []);
+                setTotal(d.total || 0);
+            });
+    };
+
+    const search = (pid = patientId, query = q) => {
+        setPage(1);
+        load(pid, query, 1);
+    };
+
+    const goToPage = (pg: number) => {
+        setPage(pg);
+        load(patientId, q, pg);
+    };
+
+    const changePageSize = (ps: number) => {
+        setPageSize(ps);
+        setPage(1);
+        load(patientId, q, 1, ps);
     };
 
     useEffect(() => {
@@ -47,7 +77,8 @@ export default function CaseHistoryList() {
     const refresh = () => {
         setQ("");
         setPatientId("");
-        load("", "");
+        setPage(1);
+        load("", "", 1);
     };
 
     const openNew = () => {
@@ -65,6 +96,8 @@ export default function CaseHistoryList() {
         await fetch(`/api/cases/${c.id}`, { method: "DELETE" });
         load();
     };
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     return (
         <div>
@@ -101,7 +134,7 @@ export default function CaseHistoryList() {
                             value={patientId}
                             onChange={(v) => {
                                 setPatientId(v);
-                                load(v);
+                                search(v);
                             }}
                             placeholder="All Patients"
                         />
@@ -115,12 +148,12 @@ export default function CaseHistoryList() {
                             value={q}
                             onChange={(e) => setQ(e.target.value)}
                             onKeyDown={(e) =>
-                                e.key === "Enter" && load()
+                                e.key === "Enter" && search()
                             }
                         />
                     </div>
 
-                    <Button onClick={() => load()}>
+                    <Button onClick={() => search()}>
                         <Search size={16} className="mr-1.5" />
                         Search
                     </Button>
@@ -238,6 +271,36 @@ export default function CaseHistoryList() {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                <div className="mt-4 flex flex-col items-center justify-between gap-2 sm:flex-row">
+                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <span>
+                            Showing{" "}
+                            {total === 0 ? 0 : (page - 1) * pageSize + 1}
+                            –{Math.min(page * pageSize, total)} of {total}
+                        </span>
+
+                        <select
+                            className="input !w-auto py-1"
+                            value={pageSize}
+                            onChange={(e) =>
+                                changePageSize(Number(e.target.value))
+                            }
+                        >
+                            {[10, 25, 50].map((n) => (
+                                <option key={n} value={n}>
+                                    {n} / page
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <Pagination
+                        page={page}
+                        totalPages={totalPages}
+                        onPage={goToPage}
+                    />
                 </div>
             </Card>
 

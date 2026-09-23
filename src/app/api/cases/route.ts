@@ -15,6 +15,16 @@ export async function GET(req: Request) {
       { patientNo: { contains: q, mode: "insensitive" } },
     ] } } },
   ];
+  const pageParam = searchParams.get("page");
+  if (pageParam) {
+    const page = Math.max(1, Number(pageParam) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize")) || 10));
+    const [items, total] = await Promise.all([
+      db.caseHistory.findMany({ where, include: { patient: true, prescriptions: true }, orderBy: [{ patientId: "asc" }, { caseNo: "asc" }], skip: (page - 1) * pageSize, take: pageSize }),
+      db.caseHistory.count({ where }),
+    ]);
+    return ok({ items, total, page, pageSize });
+  }
   return ok(await db.caseHistory.findMany({ where, include: { patient: true, prescriptions: true }, orderBy: [{ patientId: "asc" }, { caseNo: "asc" }] }));
 }
 export async function POST(req: Request) {

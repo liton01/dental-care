@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Card, Input, Label, Button, Modal, SearchSelect } from "@/components/ui";
+import { Card, Input, Label, Button, Modal, SearchSelect, Pagination } from "@/components/ui";
 import { Plus, X, Save, Pencil, Trash2, RotateCw } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -54,19 +54,50 @@ export default function BillCollection() {
     const [fltPatient, setFltPatient] = useState("");
     const [fltType, setFltType] = useState("");
     const [fltMethod, setFltMethod] = useState("");
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [total, setTotal] = useState(0);
 
     const load = (
         pid = fltPatient,
         type = fltType,
-        method = fltMethod
+        method = fltMethod,
+        pg = page,
+        ps = pageSize
     ) => {
-        const params = new URLSearchParams();
+        const params = new URLSearchParams({
+            page: String(pg),
+            pageSize: String(ps),
+        });
         if (pid) params.set("patientId", pid);
         if (type) params.set("type", type);
         if (method) params.set("method", method);
         fetch("/api/payments?" + params.toString())
             .then((r) => r.json())
-            .then(setItems);
+            .then((d) => {
+                setItems(d.items || []);
+                setTotal(d.total || 0);
+            });
+    };
+
+    const search = (
+        pid = fltPatient,
+        type = fltType,
+        method = fltMethod
+    ) => {
+        setPage(1);
+        load(pid, type, method, 1);
+    };
+
+    const goToPage = (pg: number) => {
+        setPage(pg);
+        load(fltPatient, fltType, fltMethod, pg);
+    };
+
+    const changePageSize = (ps: number) => {
+        setPageSize(ps);
+        setPage(1);
+        load(fltPatient, fltType, fltMethod, 1, ps);
     };
 
     useEffect(() => {
@@ -96,7 +127,8 @@ export default function BillCollection() {
         setFltPatient("");
         setFltType("");
         setFltMethod("");
-        load("", "", "");
+        setPage(1);
+        load("", "", "", 1);
     };
 
     const openNew = () => {
@@ -152,7 +184,8 @@ export default function BillCollection() {
         load();
     };
 
-    const total = items.reduce((s, p) => s + Number(p.paidAmount), 0);
+    const pageTotal = items.reduce((s, p) => s + Number(p.paidAmount), 0);
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     return (
         <div>
@@ -189,7 +222,7 @@ export default function BillCollection() {
                             value={fltPatient}
                             onChange={(v) => {
                                 setFltPatient(v);
-                                load(v);
+                                search(v);
                             }}
                             placeholder="All Patients"
                         />
@@ -203,7 +236,7 @@ export default function BillCollection() {
                             value={fltType}
                             onChange={(e) => {
                                 setFltType(e.target.value);
-                                load(fltPatient, e.target.value);
+                                search(fltPatient, e.target.value);
                             }}
                         >
                             <option value="">All Types</option>
@@ -221,7 +254,7 @@ export default function BillCollection() {
                             value={fltMethod}
                             onChange={(e) => {
                                 setFltMethod(e.target.value);
-                                load(fltPatient, fltType, e.target.value);
+                                search(fltPatient, fltType, e.target.value);
                             }}
                         >
                             <option value="">All Methods</option>
@@ -243,11 +276,11 @@ export default function BillCollection() {
 
                 <div className="mb-5 rounded-xl bg-teal-50 p-4">
                     <div className="text-sm text-teal-700">
-                        Total collected in listed transactions
+                        Total collected on this page
                     </div>
 
                     <div className="text-2xl font-bold text-teal-800">
-                        ৳ {total.toFixed(2)}
+                        ৳ {pageTotal.toFixed(2)}
                     </div>
                 </div>
 
@@ -345,6 +378,36 @@ export default function BillCollection() {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                <div className="mt-4 flex flex-col items-center justify-between gap-2 sm:flex-row">
+                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <span>
+                            Showing{" "}
+                            {total === 0 ? 0 : (page - 1) * pageSize + 1}
+                            –{Math.min(page * pageSize, total)} of {total}
+                        </span>
+
+                        <select
+                            className="input !w-auto py-1"
+                            value={pageSize}
+                            onChange={(e) =>
+                                changePageSize(Number(e.target.value))
+                            }
+                        >
+                            {[10, 25, 50].map((n) => (
+                                <option key={n} value={n}>
+                                    {n} / page
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <Pagination
+                        page={page}
+                        totalPages={totalPages}
+                        onPage={goToPage}
+                    />
                 </div>
             </Card>
 
