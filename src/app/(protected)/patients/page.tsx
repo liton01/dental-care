@@ -1,7 +1,7 @@
 
 "use client";
 import { useEffect, useState } from "react";
-import { Card, Input, Label, Button, Textarea, Modal } from "@/components/ui";
+import { Card, Input, Label, Button, Textarea, Modal, Pagination } from "@/components/ui";
 import { Plus, Search, X, UserPlus, Save, Pencil, ChevronLeft, ChevronRight, FolderOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import DatePicker from "react-datepicker";
@@ -425,29 +425,11 @@ export default function Patients() {
                         </select>
                     </div>
 
-                    <div className="flex items-center gap-1">
-                        <button
-                            className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40"
-                            disabled={page <= 1}
-                            onClick={() => goToPage(page - 1)}
-                            title="Previous page"
-                        >
-                            <ChevronLeft size={18} />
-                        </button>
-
-                        <span className="px-2 text-sm">
-                            Page {page} of {totalPages}
-                        </span>
-
-                        <button
-                            className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40"
-                            disabled={page >= totalPages}
-                            onClick={() => goToPage(page + 1)}
-                            title="Next page"
-                        >
-                            <ChevronRight size={18} />
-                        </button>
-                    </div>
+                    <Pagination
+                        page={page}
+                        totalPages={totalPages}
+                        onPage={goToPage}
+                    />
                 </div>
             </Card>
 

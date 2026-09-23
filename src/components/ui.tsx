@@ -78,3 +78,50 @@ export function Modal({open,title,onClose,children}:{open:boolean;title:string;o
     </div>
   );
 }
+
+export function Pagination({
+  page, totalPages, onPage,
+}: { page: number; totalPages: number; onPage: (p: number) => void }) {
+  // windowed page numbers: 1 ... p-1 p p+1 ... last
+  const pages: (number | "...")[] = [];
+  const add = (n: number | "...") => pages[pages.length - 1] !== n && pages.push(n);
+  for (let n = 1; n <= totalPages; n++) {
+    if (n === 1 || n === totalPages || Math.abs(n - page) <= 1) add(n);
+    else add("...");
+  }
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        className="rounded-lg px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+        disabled={page <= 1}
+        onClick={() => onPage(page - 1)}
+      >
+        &lsaquo; Prev
+      </button>
+      {pages.map((n, i) =>
+        n === "..." ? (
+          <span key={`e${i}`} className="px-1.5 text-sm text-slate-400">…</span>
+        ) : (
+          <button
+            key={n}
+            className={`min-w-[34px] rounded-lg px-2 py-1.5 text-sm ${
+              n === page
+                ? "bg-teal-600 font-semibold text-white"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+            onClick={() => n !== page && onPage(n)}
+          >
+            {n}
+          </button>
+        )
+      )}
+      <button
+        className="rounded-lg px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+        disabled={page >= totalPages}
+        onClick={() => onPage(page + 1)}
+      >
+        Next &rsaquo;
+      </button>
+    </div>
+  );
+}
