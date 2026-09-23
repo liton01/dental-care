@@ -136,6 +136,7 @@ model Payment {
   caseHistoryId  Int?
   caseHistory    CaseHistory?  @relation(fields: [caseHistoryId], references: [id], onDelete: SetNull)
   patient        Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  voucher        AccVoucher?
   @@index([patientId, paymentDate])
 }
 
@@ -318,6 +319,7 @@ model AccMainClass {
   acDisplayOrder      Int?          @map("ac_display_order")
   acGroupDisplayOrder Int?          @map("ac_group_display_order")
   mapClasses          AccMapClass[]
+  voucherDetails      AccVoucherDetail[]
 
   @@map("acc_main_class")
 }
@@ -370,4 +372,36 @@ model Medicine {
   prescriptionItems PrescriptionItem[]
 
   @@map("medicine")
+}
+
+// ===== Journal Vouchers =====
+
+model AccVoucher {
+  id          Int                @id @default(autoincrement())
+  voucherNo   String             @unique @db.VarChar(20)
+  voucherDate DateTime           @default(now())
+  voucherType String             @default("RECEIPT") @db.VarChar(20)
+  narration   String?            @db.VarChar(300)
+  paymentId   Int?               @unique
+  payment     Payment?           @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  details     AccVoucherDetail[]
+  createdBy   String?            @db.VarChar(150)
+  createdDate DateTime           @default(now())
+  updatedBy   String?            @db.VarChar(150)
+  updatedDate DateTime?          @updatedAt
+
+  @@map("acc_voucher")
+}
+
+model AccVoucherDetail {
+  id             Int          @id @default(autoincrement())
+  voucherId      Int
+  voucher        AccVoucher   @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  accMainClassId Int
+  accMainClass   AccMainClass @relation(fields: [accMainClassId], references: [id])
+  debit          Decimal      @default(0) @db.Decimal(12, 2)
+  credit         Decimal      @default(0) @db.Decimal(12, 2)
+  lineNarration  String?      @db.VarChar(200)
+
+  @@map("acc_voucher_detail")
 }

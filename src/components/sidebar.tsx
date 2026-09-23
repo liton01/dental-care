@@ -19,6 +19,7 @@ const accountingGroups: [string, [string, string][]][] = [
     ]],
     ["Transactions", [
         ["Bill Collection", "/payments"],
+        ["Journal Vouchers", "/accounting/vouchers"],
     ]],
 ];
 
