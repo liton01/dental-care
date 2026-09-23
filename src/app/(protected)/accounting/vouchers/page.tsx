@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Card, Input, Label, Button, Modal, SearchSelect, Pagination } from "@/components/ui";
+import { Card, Input, Label, Button, Modal, SearchSelect, Pagination, Textarea } from "@/components/ui";
 import { Search, RotateCw, Eye, Pencil, Trash2, X, Save, Plus, CheckCircle2, Undo2 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -667,6 +667,10 @@ export default function JournalVouchers() {
             >
                 {ef && (
                     <form onSubmit={saveForm} className="space-y-3">
+                        <h3 className="border-b pb-1.5 text-sm font-semibold text-slate-700">
+                            Master Data
+                        </h3>
+
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <div>
                                 <Label>Voucher Date</Label>
@@ -750,6 +754,10 @@ export default function JournalVouchers() {
                             )}
                         </div>
 
+                        <h3 className="border-b pb-1.5 pt-2 text-sm font-semibold text-slate-700">
+                            Detail Data
+                        </h3>
+
                         {ef.details.map((d: any, i: number) => (
                             <div key={i} className="rounded-xl bg-slate-50 p-3">
                                 <div className="mb-2 flex items-center justify-between">
@@ -778,6 +786,8 @@ export default function JournalVouchers() {
                                 </div>
 
                                 <div className="mb-2">
+                                    <Label>Account Head</Label>
+
                                     <SearchSelect
                                         options={accounts.map((a) => ({
                                             value: String(a.id),
@@ -793,41 +803,49 @@ export default function JournalVouchers() {
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-2">
-                                    <Input
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        placeholder="Debit"
-                                        value={d.debit}
-                                        onChange={(e) =>
-                                            setLine(i, "debit", e.target.value)
-                                        }
-                                    />
+                                    <div>
+                                        <Label>Dr</Label>
+
+                                        <Input
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            value={d.debit}
+                                            onChange={(e) =>
+                                                setLine(i, "debit", e.target.value)
+                                            }
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <Label>Cr</Label>
+
+                                        <Input
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            value={d.credit}
+                                            onChange={(e) =>
+                                                setLine(i, "credit", e.target.value)
+                                            }
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="mt-2">
+                                    <Label>Note</Label>
 
                                     <Input
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        placeholder="Credit"
-                                        value={d.credit}
+                                        value={d.lineNarration}
                                         onChange={(e) =>
-                                            setLine(i, "credit", e.target.value)
+                                            setLine(
+                                                i,
+                                                "lineNarration",
+                                                e.target.value
+                                            )
                                         }
                                     />
                                 </div>
-
-                                <Input
-                                    className="mt-2"
-                                    placeholder="Line narration (optional)"
-                                    value={d.lineNarration}
-                                    onChange={(e) =>
-                                        setLine(
-                                            i,
-                                            "lineNarration",
-                                            e.target.value
-                                        )
-                                    }
-                                />
                             </div>
                         ))}
 
@@ -868,7 +886,7 @@ export default function JournalVouchers() {
                         <div>
                             <Label>Narration</Label>
 
-                            <Input
+                            <Textarea
                                 value={ef.narration}
                                 onChange={(e) =>
                                     setEf({
