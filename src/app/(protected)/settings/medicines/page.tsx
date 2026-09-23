@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Modal } from "@/components/ui";
-import { Plus, Search, X, Save, Pencil, Trash2, RotateCw } from "lucide-react";
+import { Plus, Search, X, Save, Pencil, Trash2, RotateCw, ChevronLeft, ChevronRight } from "lucide-react";
 
 const fmtDate = (iso?: string | null) => {
     if (!iso) return "-";
@@ -27,22 +27,59 @@ const empty = {
 export default function Medicines() {
     const [items, setItems] = useState<any[]>([]);
     const [q, setQ] = useState("");
+    const [fltForm, setFltForm] = useState("");
+    const [fltMfr, setFltMfr] = useState("");
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [total, setTotal] = useState(0);
     const [f, setF] = useState<any>(empty);
     const [editing, setEditing] = useState<number | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
 
-    const load = (query = q) => {
-        const params = new URLSearchParams();
+    const load = (
+        query = q,
+        form = fltForm,
+        mfr = fltMfr,
+        pg = page,
+        ps = pageSize
+    ) => {
+        const params = new URLSearchParams({
+            page: String(pg),
+            pageSize: String(ps),
+        });
         if (query.trim()) params.set("q", query.trim());
+        if (form) params.set("dosageForm", form);
+        if (mfr) params.set("manufacturerType", mfr);
         fetch("/api/medicines?" + params.toString())
             .then((r) => r.json())
-            .then((d) => setItems(Array.isArray(d) ? d : []));
+            .then((d) => {
+                setItems(d.items || []);
+                setTotal(d.total || 0);
+            });
+    };
+
+    const search = (query = q, form = fltForm, mfr = fltMfr) => {
+        setPage(1);
+        load(query, form, mfr, 1);
+    };
+
+    const goToPage = (pg: number) => {
+        setPage(pg);
+        load(q, fltForm, fltMfr, pg);
+    };
+
+    const changePageSize = (ps: number) => {
+        setPageSize(ps);
+        setPage(1);
+        load(q, fltForm, fltMfr, 1, ps);
     };
 
     useEffect(() => {
         load();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     const openNew = () => {
         setEditing(null);
@@ -117,11 +154,48 @@ export default function Medicines() {
                             placeholder="Name, dosage form or treatment..."
                             value={q}
                             onChange={(e) => setQ(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && load()}
+                            onKeyDown={(e) => e.key === "Enter" && search()}
                         />
                     </div>
 
-                    <Button onClick={() => load()}>
+                    <div className="sm:w-44">
+                        <Label>Dosage Form</Label>
+
+                        <select
+                            className="input"
+                            value={fltForm}
+                            onChange={(e) => {
+                                setFltForm(e.target.value);
+                                search(q, e.target.value);
+                            }}
+                        >
+                            <option value="">All Forms</option>
+
+                            {DOSAGE_FORMS.map((d) => (
+                                <option key={d} value={d}>{d}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="sm:w-44">
+                        <Label>Manufacturer Type</Label>
+
+                        <select
+                            className="input"
+                            value={fltMfr}
+                            onChange={(e) => {
+                                setFltMfr(e.target.value);
+                                search(q, fltForm, e.target.value);
+                            }}
+                        >
+                            <option value="">All Types</option>
+                            <option>Local/Imported</option>
+                            <option>Local</option>
+                            <option>Imported</option>
+                        </select>
+                    </div>
+
+                    <Button onClick={() => search()}>
                         <Search size={16} className="mr-1.5" />
                         Search
                     </Button>
@@ -130,9 +204,12 @@ export default function Medicines() {
                         variant="secondary"
                         onClick={() => {
                             setQ("");
-                            load("");
+                            setFltForm("");
+                            setFltMfr("");
+                            setPage(1);
+                            load("", "", "", 1);
                         }}
-                        title="Reset search and reload"
+                        title="Reset filters and reload"
                     >
                         <RotateCw size={16} className="mr-1.5" />
                         Refresh
@@ -211,6 +288,54 @@ export default function Medicines() {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                <div className="mt-4 flex flex-col items-center justify-between gap-2 sm:flex-row">
+                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <span>
+                            Showing{" "}
+                            {total === 0 ? 0 : (page - 1) * pageSize + 1}
+                            –{Math.min(page * pageSize, total)} of {total}
+                        </span>
+
+                        <select
+                            className="input !w-auto py-1"
+                            value={pageSize}
+                            onChange={(e) =>
+                                changePageSize(Number(e.target.value))
+                            }
+                        >
+                            {[10, 25, 50].map((n) => (
+                                <option key={n} value={n}>
+                                    {n} / page
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                        <button
+                            className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+                            disabled={page <= 1}
+                            onClick={() => goToPage(page - 1)}
+                            title="Previous page"
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
+
+                        <span className="px-2 text-sm">
+                            Page {page} of {totalPages}
+                        </span>
+
+                        <button
+                            className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+                            disabled={page >= totalPages}
+                            onClick={() => goToPage(page + 1)}
+                            title="Next page"
+                        >
+                            <ChevronRight size={18} />
+                        </button>
+                    </div>
                 </div>
             </Card>
 
