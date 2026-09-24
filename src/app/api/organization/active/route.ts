@@ -1,4 +1,7 @@
 import { db } from "@/lib/prisma";
+
+// always run at request time, never during build prerender
+export const dynamic = "force-dynamic";
 import { ok } from "@/lib/api";
 
 // Branding endpoint for sidebar/topbar. Auto-creates the default
