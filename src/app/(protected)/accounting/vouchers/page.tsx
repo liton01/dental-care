@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Modal, SearchSelect, Pagination, Textarea } from "@/components/ui";
 import { Search, RotateCw, Eye, Pencil, Trash2, X, Save, Plus, CheckCircle2, Undo2 } from "lucide-react";
+import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -153,9 +154,12 @@ export default function JournalVouchers() {
             body: JSON.stringify({ ids, action }),
         });
         if (!r.ok) {
-            alert((await r.json()).error || "Action failed");
+            toast.error((await r.json()).error || "Action failed");
             return;
         }
+        toast.success(
+            action === "post" ? "Voucher(s) posted" : "Voucher(s) unposted"
+        );
         load();
     };
 
@@ -207,16 +211,21 @@ export default function JournalVouchers() {
             }
         );
         if (!r.ok) {
-            setErr((await r.json()).error || "Save failed");
+            const msg = (await r.json()).error || "Save failed";
+            setErr(msg);
+            toast.error(msg);
             return;
         }
+        toast.success(editV ? "Voucher updated" : "Voucher saved");
         closeForm();
         load();
     };
 
     const remove = async (v: any) => {
         if (!confirm(`Delete voucher ${v.voucherNo}?`)) return;
-        await fetch(`/api/vouchers/${v.id}`, { method: "DELETE" });
+        const r = await fetch(`/api/vouchers/${v.id}`, { method: "DELETE" });
+        if (r.ok) toast.success("Voucher deleted");
+        else toast.error("Failed to delete voucher.");
         load();
     };
 

@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, Button } from "@/components/ui";
 import { Plus, ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import CaseFormModal from "@/components/case-form-modal";
+import toast from "react-hot-toast";
 
 const fmtDate = (iso?: string | null) => {
     if (!iso) return "-";
@@ -51,7 +52,9 @@ export default function PatientCaseHistory() {
 
     const remove = async (c: any) => {
         if (!confirm(`Delete Case-${String(c.caseNo).padStart(2, "0")}?`)) return;
-        await fetch(`/api/cases/${c.id}`, { method: "DELETE" });
+        const r = await fetch(`/api/cases/${c.id}`, { method: "DELETE" });
+        if (r.ok) toast.success("Case deleted");
+        else toast.error("Failed to delete case.");
         load();
     };
 

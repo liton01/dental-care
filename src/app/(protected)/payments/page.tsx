@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Modal, SearchSelect, Pagination } from "@/components/ui";
 import { Plus, X, Save, Pencil, Trash2, RotateCw, FileCheck2 } from "lucide-react";
+import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -162,7 +163,7 @@ export default function BillCollection() {
     const save = async (e: any) => {
         e.preventDefault();
 
-        await fetch(
+        const res = await fetch(
             editing ? `/api/payments/${editing}` : "/api/payments",
             {
                 method: editing ? "PATCH" : "POST",
@@ -174,13 +175,22 @@ export default function BillCollection() {
             }
         );
 
+        if (!res.ok) {
+            const d = await res.json().catch(() => null);
+            toast.error(d?.error || "Failed to save transaction.");
+            return;
+        }
+
+        toast.success(editing ? "Transaction updated" : "Transaction saved");
         closeModal();
         load();
     };
 
     const remove = async (p: any) => {
         if (!confirm(`Delete transaction ${p.invoiceNo}?`)) return;
-        await fetch(`/api/payments/${p.id}`, { method: "DELETE" });
+        const r = await fetch(`/api/payments/${p.id}`, { method: "DELETE" });
+        if (r.ok) toast.success("Transaction deleted");
+        else toast.error("Failed to delete transaction.");
         load();
     };
 
@@ -190,9 +200,10 @@ export default function BillCollection() {
             method: "POST",
         });
         if (!r.ok) {
-            alert((await r.json()).error || "Finalize failed");
+            toast.error((await r.json()).error || "Finalize failed");
             return;
         }
+        toast.success("Draft journal voucher created");
         load();
     };
 

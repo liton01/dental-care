@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button } from "@/components/ui";
 import { ChevronRight, ChevronDown, RotateCw, ListTree, FolderTree, Plus, Save, Trash2, Eraser } from "lucide-react";
+import toast from "react-hot-toast";
 
 // kind of the SELECTED node; childKind = what Add creates under it
 type Kind = "ac" | "main" | "map" | "sub";
@@ -171,6 +172,7 @@ export default function ChartOfAccounts() {
             body: JSON.stringify({ kind, parentId: sel.node.id, name }),
         });
         if (!r.ok) return setErr((await r.json()).error || "Add failed");
+        toast.success("Account added");
         setName("");
         setErr("");
         load();
@@ -186,6 +188,7 @@ export default function ChartOfAccounts() {
             body: JSON.stringify({ kind: sel.kind, id: sel.node.id, name }),
         });
         if (!r.ok) return setErr((await r.json()).error || "Update failed");
+        toast.success("Account renamed");
         clearEntry();
         load();
     };
@@ -199,6 +202,7 @@ export default function ChartOfAccounts() {
             { method: "DELETE" }
         );
         if (!r.ok) return setErr((await r.json()).error || "Delete failed");
+        toast.success("Account deleted");
         clearEntry();
         load();
     };

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button } from "@/components/ui";
+import { UserPlus } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function Security() {
     const [users, setUsers] = useState<any[]>([]);
@@ -41,7 +43,7 @@ export default function Security() {
     const save = async (e: any) => {
         e.preventDefault();
 
-        await fetch("/api/security/users", {
+        const res = await fetch("/api/security/users", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -49,6 +51,13 @@ export default function Security() {
             body: JSON.stringify(f),
         });
 
+        if (!res.ok) {
+            const d = await res.json().catch(() => null);
+            toast.error(d?.error || "Failed to create user.");
+            return;
+        }
+
+        toast.success("User created");
         setF({
             ...f,
             name: "",
@@ -127,6 +136,7 @@ export default function Security() {
 
                         <div className="md:col-span-2">
                             <Button type="submit">
+                                <UserPlus size={16} className="mr-1.5" />
                                 Create User
                             </Button>
                         </div>

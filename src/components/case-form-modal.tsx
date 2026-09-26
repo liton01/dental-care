@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Input, Label, Button, Textarea, Modal, SearchSelect } from "@/components/ui";
 import { X, Save } from "lucide-react";
+import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -81,8 +82,14 @@ export default function CaseFormModal({
 
         const saved = await res.json().catch(() => null);
 
+        if (!res.ok) {
+            toast.error(saved?.error || "Failed to save case.");
+            return;
+        }
+
+        toast.success(caseData ? "Case updated" : "Case history saved");
         onClose();
-        onSaved(res.ok ? saved : undefined);
+        onSaved(saved);
     };
 
     return (

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Textarea, Modal, Pagination } from "@/components/ui";
 import { Plus, X, Save, Pencil, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 const empty = {
     nameEn: "",
@@ -93,7 +94,7 @@ export default function Organization() {
     const save = async (e: any) => {
         e.preventDefault();
 
-        await fetch(
+        const res = await fetch(
             editing ? `/api/organization/${editing}` : "/api/organization",
             {
                 method: editing ? "PATCH" : "POST",
@@ -102,13 +103,22 @@ export default function Organization() {
             }
         );
 
+        if (!res.ok) {
+            const d = await res.json().catch(() => null);
+            toast.error(d?.error || "Failed to save organization.");
+            return;
+        }
+
+        toast.success(editing ? "Organization updated" : "Organization saved");
         closeModal();
         load();
     };
 
     const remove = async (o: any) => {
         if (!confirm(`Delete organization "${o.nameEn}"?`)) return;
-        await fetch(`/api/organization/${o.id}`, { method: "DELETE" });
+        const r = await fetch(`/api/organization/${o.id}`, { method: "DELETE" });
+        if (r.ok) toast.success("Organization deleted");
+        else toast.error("Failed to delete organization.");
         load();
     };
 

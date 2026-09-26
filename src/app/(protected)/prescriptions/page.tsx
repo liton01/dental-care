@@ -3,6 +3,8 @@
 
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, SearchSelect, Pagination } from "@/components/ui";
+import { Plus, Save } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function Prescriptions() {
     const [patients, setPatients] = useState<any[]>([]);
@@ -71,7 +73,7 @@ export default function Prescriptions() {
     const save = async (e: any) => {
         e.preventDefault();
 
-        await fetch("/api/prescriptions", {
+        const res = await fetch("/api/prescriptions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -79,6 +81,13 @@ export default function Prescriptions() {
             body: JSON.stringify(f),
         });
 
+        if (!res.ok) {
+            const d = await res.json().catch(() => null);
+            toast.error(d?.error || "Failed to save prescription.");
+            return;
+        }
+
+        toast.success("Prescription saved");
         load();
     };
 
@@ -295,10 +304,12 @@ export default function Prescriptions() {
                                     })
                                 }
                             >
-                                + Medicine
+                                <Plus size={16} className="mr-1.5" />
+                                Medicine
                             </Button>
 
                             <Button type="submit">
+                                <Save size={16} className="mr-1.5" />
                                 Save Prescription
                             </Button>
                         </div>

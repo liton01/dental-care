@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Textarea, SearchSelect } from "@/components/ui";
 import { Send, Save } from "lucide-react";
+import toast from "react-hot-toast";
 
 const TABS = ["Send Greeting", "Template Management"] as const;
 
@@ -35,12 +36,19 @@ export default function Greetings() {
     const save = async (e: any) => {
         e.preventDefault();
 
-        await fetch("/api/greetings/templates", {
+        const res = await fetch("/api/greetings/templates", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(f),
         });
 
+        if (!res.ok) {
+            const d = await res.json().catch(() => null);
+            toast.error(d?.error || "Failed to save template.");
+            return;
+        }
+
+        toast.success("Template saved");
         setF({ name: "", subject: "", body: "", channel: "EMAIL" });
         load();
     };
@@ -54,11 +62,8 @@ export default function Greetings() {
 
         const d = await r.json();
 
-        alert(
-            d.status === "SENT"
-                ? "Message sent"
-                : "Message processed: " + (d.error || d.status)
-        );
+        if (d.status === "SENT") toast.success("Message sent");
+        else toast.error("Message processed: " + (d.error || d.status));
     };
 
     return (

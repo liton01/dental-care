@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Textarea, Modal, Pagination } from "@/components/ui";
 import { Plus, Search, X, UserPlus, Save, Pencil, ChevronLeft, ChevronRight, FolderOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -178,6 +179,12 @@ export default function Patients() {
 
         const saved = await res.json().catch(() => null);
 
+        if (!res.ok) {
+            toast.error(saved?.error || "Failed to save patient.");
+            return;
+        }
+
+        toast.success(editing ? "Patient updated" : "Patient registered");
         closeModal();
         load();
 

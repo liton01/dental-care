@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Modal, Pagination } from "@/components/ui";
 import { Plus, Search, X, Save, Pencil, Trash2, RotateCw, ChevronLeft, ChevronRight } from "lucide-react";
+import toast from "react-hot-toast";
 
 const fmtDate = (iso?: string | null) => {
     if (!iso) return "-";
@@ -109,7 +110,7 @@ export default function Medicines() {
     const save = async (e: any) => {
         e.preventDefault();
 
-        await fetch(
+        const res = await fetch(
             editing ? `/api/medicines/${editing}` : "/api/medicines",
             {
                 method: editing ? "PATCH" : "POST",
@@ -118,13 +119,22 @@ export default function Medicines() {
             }
         );
 
+        if (!res.ok) {
+            const d = await res.json().catch(() => null);
+            toast.error(d?.error || "Failed to save medicine.");
+            return;
+        }
+
+        toast.success(editing ? "Medicine updated" : "Medicine added");
         closeModal();
         load();
     };
 
     const remove = async (m: any) => {
         if (!confirm(`Delete "${m.name} ${m.strength || ""} ${m.unit || ""}"?`)) return;
-        await fetch(`/api/medicines/${m.id}`, { method: "DELETE" });
+        const r = await fetch(`/api/medicines/${m.id}`, { method: "DELETE" });
+        if (r.ok) toast.success("Medicine deleted");
+        else toast.error("Failed to delete medicine.");
         load();
     };
 
