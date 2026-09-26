@@ -115,6 +115,19 @@ export default function Patients() {
 
     useEffect(() => {
         load();
+
+        // arriving from patient search: ?new=1&name=...
+        const sp = new URLSearchParams(window.location.search);
+        if (sp.get("new") === "1") {
+            setEditing(null);
+            setForm({
+                ...empty,
+                name: sp.get("name") || "",
+                admissionDate: new Date().toISOString().slice(0, 10),
+            });
+            setModalOpen(true);
+            window.history.replaceState(null, "", "/patients");
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
