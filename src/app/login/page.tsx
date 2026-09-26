@@ -1,7 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { Card, Input, Label, Button } from "@/components/ui";
 import { Loader2, LogIn } from "lucide-react";
 
@@ -10,13 +9,6 @@ export default function Login() {
     const [password, setPassword] = useState("Admin@123");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const router = useRouter();
-
-    // preload the dashboard bundle while the user types,
-    // so the post-login navigation is instant
-    useEffect(() => {
-        router.prefetch("/dashboard");
-    }, [router]);
 
     const submit = async (e: any) => {
         e.preventDefault();
@@ -31,8 +23,9 @@ export default function Login() {
         });
 
         if (r?.ok) {
-            router.replace("/dashboard");
-            // keep the loader spinning until the page actually changes
+            // full navigation so the fresh session cookie is used;
+            // client-side router cache would replay the pre-login redirect
+            window.location.href = "/dashboard";
         } else {
             setError("Invalid email or password.");
             setLoading(false);
