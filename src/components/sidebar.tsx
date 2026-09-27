@@ -21,6 +21,11 @@ const accountingGroups: [string, [string, string][]][] = [
         ["Bill Collection", "/payments"],
         ["Journal Vouchers", "/accounting/vouchers"],
     ]],
+    ["Report", [
+        ["Patient Ledger", "/accounting/reports/patient-ledger"],
+        ["Trial Balance", "/accounting/reports/trial-balance"],
+        ["Balance Sheet", "/accounting/reports/balance-sheet"],
+    ]],
 ];
 
 const settingsItems = [

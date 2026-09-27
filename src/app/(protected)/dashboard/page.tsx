@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Card, Badge } from "@/components/ui";
 import PatientSearch from "@/components/patient-search";
+import PageLoader from "@/components/page-loader";
 
 export default function Dashboard() {
     const [d, setD] = useState<any>();
@@ -12,7 +13,7 @@ export default function Dashboard() {
             .then(setD);
     }, []);
 
-    if (!d) return <div>Loading...</div>;
+    if (!d) return <PageLoader />;
 
     const stats = [
         ["Active Patients", d.patients],

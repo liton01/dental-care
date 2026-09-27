@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Input, Label, Button, Textarea, Modal, SearchSelect } from "@/components/ui";
-import { X, Save, Plus, Trash2 } from "lucide-react";
+import { X, Save, Plus, Trash2, Printer } from "lucide-react";
 import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -104,7 +104,7 @@ export default function CaseFormModal({
         setF({ ...f, medicines });
     };
 
-    const save = async (e: any) => {
+    const save = async (e: any, print = false) => {
         e.preventDefault();
         if (saving) return;
 
@@ -133,6 +133,11 @@ export default function CaseFormModal({
         }
 
         toast.success(caseData ? "Case updated" : "Case history saved");
+
+        if (print && saved?.id) {
+            window.open(`/api/cases/${saved.id}/prescription/pdf`, "_blank");
+        }
+
         onClose();
         onSaved(saved);
     };
@@ -207,33 +212,6 @@ export default function CaseFormModal({
                             setF({ ...f, toothNumber: e.target.value })
                         }
                     />
-                </div>
-
-                <div>
-                    <Label>Status</Label>
-
-                    <div className="flex items-center gap-5 pt-2">
-                        {[
-                            ["IN_PROGRESS", "In Progress"],
-                            ["CLOSED", "Closed"],
-                        ].map(([val, label]) => (
-                            <label
-                                key={val}
-                                className="flex cursor-pointer items-center gap-1.5 text-sm"
-                            >
-                                <input
-                                    type="radio"
-                                    name="caseStatus"
-                                    value={val}
-                                    checked={f.status === val}
-                                    onChange={() =>
-                                        setF({ ...f, status: val })
-                                    }
-                                />
-                                {label}
-                            </label>
-                        ))}
-                    </div>
                 </div>
 
                 <div className="sm:col-span-2">
@@ -369,20 +347,58 @@ export default function CaseFormModal({
                     />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={onClose}
-                    >
-                        <X size={16} className="mr-1.5" />
-                        Cancel
-                    </Button>
+                <div className="flex flex-col gap-3 border-t pt-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <Label>Status</Label>
 
-                    <Button type="submit" disabled={saving}>
-                        <Save size={16} className="mr-1.5" />
-                        {caseData ? "Update" : "Save Case History"}
-                    </Button>
+                        <div className="flex items-center gap-5 pt-1">
+                            {[
+                                ["IN_PROGRESS", "In Progress"],
+                                ["CLOSED", "Closed"],
+                            ].map(([val, label]) => (
+                                <label
+                                    key={val}
+                                    className="flex cursor-pointer items-center gap-1.5 text-sm"
+                                >
+                                    <input
+                                        type="radio"
+                                        name="caseStatus"
+                                        value={val}
+                                        checked={f.status === val}
+                                        onChange={() =>
+                                            setF({ ...f, status: val })
+                                        }
+                                    />
+                                    {label}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap justify-end gap-2">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={onClose}
+                        >
+                            <X size={16} className="mr-1.5" />
+                            Cancel
+                        </Button>
+
+                        <Button type="submit" disabled={saving}>
+                            <Save size={16} className="mr-1.5" />
+                            {caseData ? "Update" : "Save"}
+                        </Button>
+
+                        <Button
+                            type="button"
+                            disabled={saving}
+                            onClick={(e: any) => save(e, true)}
+                        >
+                            <Printer size={16} className="mr-1.5" />
+                            Save &amp; Generate Prescription
+                        </Button>
+                    </div>
                 </div>
             </form>
         </Modal>
