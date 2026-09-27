@@ -4,7 +4,14 @@ import { useRouter } from "next/navigation";
 import { Card, Input, Label, Button, SearchSelect, Pagination } from "@/components/ui";
 import { Plus, Search, RotateCw, Pencil, Trash2, FolderOpen, Printer } from "lucide-react";
 import CaseFormModal from "@/components/case-form-modal";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import toast from "react-hot-toast";
+
+const toYMD = (d: Date) => {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
 
 const fmtDate = (iso?: string | null) => {
     if (!iso) return "-";
@@ -27,6 +34,8 @@ export default function CaseHistoryList() {
     const [patientId, setPatientId] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
     const [editingCase, setEditingCase] = useState<any | null>(null);
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [total, setTotal] = useState(0);
@@ -34,6 +43,8 @@ export default function CaseHistoryList() {
     const load = (
         pid = patientId,
         query = q,
+        from = dateFrom,
+        to = dateTo,
         pg = page,
         ps = pageSize
     ) => {
@@ -43,6 +54,8 @@ export default function CaseHistoryList() {
         });
         if (query.trim()) params.set("q", query.trim());
         if (pid) params.set("patientId", pid);
+        if (from) params.set("dateFrom", from);
+        if (to) params.set("dateTo", to);
         fetch("/api/cases?" + params.toString())
             .then((r) => r.json())
             .then((d) => {
@@ -51,20 +64,25 @@ export default function CaseHistoryList() {
             });
     };
 
-    const search = (pid = patientId, query = q) => {
+    const search = (
+        pid = patientId,
+        query = q,
+        from = dateFrom,
+        to = dateTo
+    ) => {
         setPage(1);
-        load(pid, query, 1);
+        load(pid, query, from, to, 1);
     };
 
     const goToPage = (pg: number) => {
         setPage(pg);
-        load(patientId, q, pg);
+        load(patientId, q, dateFrom, dateTo, pg);
     };
 
     const changePageSize = (ps: number) => {
         setPageSize(ps);
         setPage(1);
-        load(patientId, q, 1, ps);
+        load(patientId, q, dateFrom, dateTo, 1, ps);
     };
 
     useEffect(() => {
@@ -78,8 +96,10 @@ export default function CaseHistoryList() {
     const refresh = () => {
         setQ("");
         setPatientId("");
+        setDateFrom("");
+        setDateTo("");
         setPage(1);
-        load("", "", 1);
+        load("", "", "", "", 1);
     };
 
     const openNew = () => {
@@ -156,6 +176,43 @@ export default function CaseHistoryList() {
                         />
                     </div>
 
+                    <div className="sm:w-40">
+                        <Label>Case From</Label>
+
+                        <DatePicker
+                            selected={dateFrom ? new Date(dateFrom) : null}
+                            onChange={(d: Date | null) => {
+                                const v = d ? toYMD(d) : "";
+                                setDateFrom(v);
+                                search(patientId, q, v, dateTo);
+                            }}
+                            dateFormat="dd/MM/yyyy"
+                            placeholderText="dd/mm/yyyy"
+                            className="input"
+                            wrapperClassName="w-full"
+                            isClearable
+                        />
+                    </div>
+
+                    <div className="sm:w-40">
+                        <Label>Case To</Label>
+
+                        <DatePicker
+                            selected={dateTo ? new Date(dateTo) : null}
+                            onChange={(d: Date | null) => {
+                                const v = d ? toYMD(d) : "";
+                                setDateTo(v);
+                                search(patientId, q, dateFrom, v);
+                            }}
+                            dateFormat="dd/MM/yyyy"
+                            placeholderText="dd/mm/yyyy"
+                            className="input"
+                            wrapperClassName="w-full"
+                            minDate={dateFrom ? new Date(dateFrom) : undefined}
+                            isClearable
+                        />
+                    </div>
+
                     <Button onClick={() => search()}>
                         <Search size={16} className="mr-1.5" />
                         Search
@@ -175,7 +232,6 @@ export default function CaseHistoryList() {
                     <table className="w-full text-left text-sm">
                         <thead>
                             <tr className="border-b text-slate-500">
-                                <th className="p-3">Patient No</th>
                                 <th className="p-3">Patient</th>
                                 <th className="p-3">Case</th>
                                 <th className="p-3">Tooth</th>
@@ -190,10 +246,6 @@ export default function CaseHistoryList() {
                         <tbody>
                             {items.map((c) => (
                                 <tr key={c.id} className="border-b">
-                                    <td className="p-3">
-                                        {c.patient.patientNo}
-                                    </td>
-
                                     <td className="p-3 font-medium">
                                         {c.patient.name}
                                     </td>
@@ -274,7 +326,7 @@ export default function CaseHistoryList() {
                             {items.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={9}
+                                        colSpan={8}
                                         className="p-8 text-center text-slate-500"
                                     >
                                         No cases found

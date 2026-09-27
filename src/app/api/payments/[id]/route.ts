@@ -1,6 +1,5 @@
 import { db } from "@/lib/prisma";
 import { bad, ok, parseBody, requireSession } from "@/lib/api";
-import { generateVoucherForPayment } from "@/lib/vouchers";
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   if (!await requireSession()) return bad("Unauthorized", 401);
   const p = await db.payment.findUnique({ where: { id: Number(params.id) }, include: { patient: true } });
@@ -12,6 +11,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (!session) return bad("Unauthorized", 401);
   const b = await parseBody(req);
   if (!b?.patientId || b.amount === undefined) return bad("Patient and amount are required.");
+  const lockV = await db.accVoucher.findUnique({ where: { paymentId: Number(params.id) } });
+  if (lockV) return bad(`Locked: journal voucher ${lockV.voucherNo} exists for this transaction. Delete the voucher first.`);
   const updated = await db.payment.update({ where: { id: Number(params.id) }, data: {
     patientId: Number(b.patientId), description: b.description || null,
     amount: Number(b.amount), discount: Number(b.discount || 0),
@@ -20,15 +21,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     paymentDate: b.paymentDate ? new Date(b.paymentDate) : undefined,
     caseHistoryId: b.caseHistoryId ? Number(b.caseHistoryId) : null,
   }, include: { patient: true, caseHistory: true } });
-  const v = await db.accVoucher.findUnique({ where: { paymentId: updated.id } });
-  if (v && v.isPosted !== "Y") {
-    await generateVoucherForPayment(updated.id, session.user?.email || session.user?.name).catch(() => {});
-  }
   return ok(updated);
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   if (!await requireSession()) return bad("Unauthorized", 401);
+  const lockV = await db.accVoucher.findUnique({ where: { paymentId: Number(params.id) } });
+  if (lockV) return bad(`Locked: journal voucher ${lockV.voucherNo} exists for this transaction. Delete the voucher first.`);
   await db.payment.delete({ where: { id: Number(params.id) } });
   return ok({ deleted: true });
 }

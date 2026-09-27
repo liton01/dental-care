@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button } from "@/components/ui";
 import { UserPlus } from "lucide-react";
+import PhotoUpload from "@/components/photo-upload";
 import toast from "react-hot-toast";
 
 export default function Security() {
@@ -16,6 +17,7 @@ export default function Security() {
         email: "",
         password: "Admin@123",
         roleId: "",
+        photoUrl: "",
     });
 
     const load = () => {
@@ -62,6 +64,7 @@ export default function Security() {
             ...f,
             name: "",
             email: "",
+            photoUrl: "",
         });
 
         load();
@@ -132,6 +135,18 @@ export default function Security() {
                                     </option>
                                 ))}
                             </select>
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <Label>Profile Photo</Label>
+
+                            <PhotoUpload
+                                value={f.photoUrl}
+                                onChange={(v) =>
+                                    setF({ ...f, photoUrl: v })
+                                }
+                                size={64}
+                            />
                         </div>
 
                         <div className="md:col-span-2">

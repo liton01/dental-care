@@ -5,6 +5,7 @@ import { Card, Input, Label, Button, Textarea, Modal, Pagination } from "@/compo
 import { Plus, Search, X, UserPlus, Save, Pencil, ChevronLeft, ChevronRight, FolderOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import PhotoUpload from "@/components/photo-upload";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -49,6 +50,7 @@ const empty = {
     gender: "",
     bloodGroup: "",
     projectedCharge: "",
+    photoUrl: "",
     dateOfBirth: "",
     admissionDate: "",
     notes: "",
@@ -64,6 +66,7 @@ const fields: { key: string; label: string; type: string }[] = [
     { key: "bloodGroup", label: "Blood Group", type: "select" },
     { key: "admissionDate", label: "Admission Date", type: "date" },
     { key: "projectedCharge", label: "Projected Charge", type: "number" },
+    { key: "photoUrl", label: "Patient Photo", type: "photo" },
     { key: "address", label: "Address", type: "textarea" },
     { key: "notes", label: "Remarks", type: "textarea" },
 ];
@@ -172,6 +175,7 @@ export default function Patients() {
             age: p.age || "",
             bloodGroup: p.bloodGroup || "",
             projectedCharge: String(p.projectedCharge ?? ""),
+            photoUrl: p.photoUrl || "",
             dateOfBirth: p.dateOfBirth?.slice(0, 10) || "",
             admissionDate: p.admissionDate?.slice(0, 10) || "",
         });
@@ -508,7 +512,15 @@ export default function Patients() {
                                 {f.label}
                             </Label>
 
-                            {f.type === "textarea" ? (
+                            {f.type === "photo" ? (
+                                <PhotoUpload
+                                    value={form[f.key]}
+                                    onChange={(v) =>
+                                        setForm({ ...form, [f.key]: v })
+                                    }
+                                    size={56}
+                                />
+                            ) : f.type === "textarea" ? (
                                 <Textarea
                                     value={form[f.key]}
                                     onChange={(e) =>

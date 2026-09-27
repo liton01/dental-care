@@ -326,7 +326,6 @@ export default function BillCollection() {
                     <table className="w-full text-left text-sm">
                         <thead>
                             <tr className="border-b text-slate-500">
-                                <th className="p-3">Invoice</th>
                                 <th className="p-3">Date</th>
                                 <th className="p-3">Patient</th>
                                 <th className="p-3">Case</th>
@@ -344,10 +343,6 @@ export default function BillCollection() {
                         <tbody>
                             {items.map((p) => (
                                 <tr key={p.id} className="border-b">
-                                    <td className="p-3 max-w-[160px] truncate" title={p.invoiceNo}>
-                                        {p.invoiceNo}
-                                    </td>
-
                                     <td className="p-3 whitespace-nowrap">
                                         {fmtDate(p.paymentDate)}
                                     </td>
@@ -409,36 +404,44 @@ export default function BillCollection() {
                                     </td>
 
                                     <td className="p-3 whitespace-nowrap">
-                                        {(!p.voucher ||
-                                            p.voucher.isPosted !== "Y") && (
+                                        {!p.voucher && (
                                             <button
                                                 className="rounded-lg p-1.5 text-emerald-700 hover:bg-emerald-50"
                                                 onClick={() => finalize(p)}
-                                                title={
-                                                    p.voucher
-                                                        ? "Refresh draft voucher from this transaction"
-                                                        : "Finalize: create draft journal voucher"
-                                                }
+                                                title="Finalize: create draft journal voucher"
                                             >
                                                 <FileCheck2 size={16} />
                                             </button>
                                         )}
 
-                                        <button
-                                            className="rounded-lg p-1.5 text-teal-700 hover:bg-teal-50"
-                                            onClick={() => openEdit(p)}
-                                            title="Edit transaction"
-                                        >
-                                            <Pencil size={16} />
-                                        </button>
+                                        {!p.voucher && (
+                                            <button
+                                                className="rounded-lg p-1.5 text-teal-700 hover:bg-teal-50"
+                                                onClick={() => openEdit(p)}
+                                                title="Edit transaction"
+                                            >
+                                                <Pencil size={16} />
+                                            </button>
+                                        )}
 
-                                        <button
-                                            className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"
-                                            onClick={() => remove(p)}
-                                            title="Delete transaction"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        {!p.voucher && (
+                                            <button
+                                                className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"
+                                                onClick={() => remove(p)}
+                                                title="Delete transaction"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
+
+                                        {p.voucher && (
+                                            <span
+                                                className="px-1.5 text-xs text-slate-400"
+                                                title="Locked: a journal voucher exists for this transaction"
+                                            >
+                                                Locked
+                                            </span>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -446,7 +449,7 @@ export default function BillCollection() {
                             {items.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={12}
+                                        colSpan={11}
                                         className="p-8 text-center text-slate-500"
                                     >
                                         No transactions found

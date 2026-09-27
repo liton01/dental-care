@@ -311,7 +311,11 @@ export default function CaseFormModal({
                                     placeholder="Dosage (e.g. 1+0+1)"
                                     value={m.dosage}
                                     onChange={(e) =>
-                                        setMed(i, "dosage", e.target.value)
+                                        setMed(
+                                            i,
+                                            "dosage",
+                                            e.target.value.replace(/ +/g, "+")
+                                        )
                                     }
                                 />
 

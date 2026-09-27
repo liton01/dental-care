@@ -6,6 +6,13 @@ export async function GET(req: Request) {
   const q = searchParams.get("q")?.trim() ?? "";
   const where: any = {};
   if (patientId) where.patientId = patientId;
+  const dateFrom = searchParams.get("dateFrom")?.trim() ?? "";
+  const dateTo = searchParams.get("dateTo")?.trim() ?? "";
+  if (dateFrom || dateTo) {
+    where.caseDate = {};
+    if (dateFrom) where.caseDate.gte = new Date(dateFrom);
+    if (dateTo) where.caseDate.lte = new Date(dateTo + "T23:59:59.999");
+  }
   if (q) where.OR = [
     { problem: { contains: q, mode: "insensitive" } },
     { treatment: { contains: q, mode: "insensitive" } },
