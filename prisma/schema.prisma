@@ -60,6 +60,7 @@ model Patient {
   dateOfBirth    DateTime?
   gender         Gender?
   bloodGroup     String?
+  projectedCharge Decimal        @default(0) @db.Decimal(12, 2)
   admissionDate  DateTime        @default(now())
   phone          String
   email          String?

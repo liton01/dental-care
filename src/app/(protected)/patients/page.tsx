@@ -14,6 +14,26 @@ const toYMD = (d: Date) => {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
 
+// age in whole years from a yyyy-mm-dd date of birth
+const ageFromDob = (ymd: string) => {
+    const b = new Date(ymd);
+    if (isNaN(b.getTime())) return "";
+    const t = new Date();
+    let a = t.getFullYear() - b.getFullYear();
+    const m = t.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && t.getDate() < b.getDate())) a--;
+    return a >= 0 ? String(a) : "";
+};
+
+// dob = current date minus the given age in years
+const dobFromAge = (age: string) => {
+    const n = Number(age);
+    if (!age.trim() || isNaN(n) || n < 0 || n > 150) return "";
+    const t = new Date();
+    t.setFullYear(t.getFullYear() - Math.floor(n));
+    return toYMD(t);
+};
+
 // dd/mm/yyyy for display
 const fmtDate = (iso?: string | null) => {
     if (!iso) return "-";
@@ -28,6 +48,7 @@ const empty = {
     address: "",
     gender: "",
     bloodGroup: "",
+    projectedCharge: "",
     dateOfBirth: "",
     admissionDate: "",
     notes: "",
@@ -39,9 +60,10 @@ const fields: { key: string; label: string; type: string }[] = [
     { key: "email", label: "Email", type: "text" },
     { key: "age", label: "Age", type: "text" },
     { key: "dateOfBirth", label: "Date Of Birth", type: "date" },
-    { key: "gender", label: "Gender", type: "select" },
+    { key: "gender", label: "Gender", type: "radio" },
     { key: "bloodGroup", label: "Blood Group", type: "select" },
     { key: "admissionDate", label: "Admission Date", type: "date" },
+    { key: "projectedCharge", label: "Projected Charge", type: "number" },
     { key: "address", label: "Address", type: "textarea" },
     { key: "notes", label: "Remarks", type: "textarea" },
 ];
@@ -149,6 +171,7 @@ export default function Patients() {
             ...p,
             age: p.age || "",
             bloodGroup: p.bloodGroup || "",
+            projectedCharge: String(p.projectedCharge ?? ""),
             dateOfBirth: p.dateOfBirth?.slice(0, 10) || "",
             admissionDate: p.admissionDate?.slice(0, 10) || "",
         });
@@ -163,6 +186,14 @@ export default function Patients() {
 
     const save = async (e: any) => {
         e.preventDefault();
+
+        if (!Number(form.projectedCharge)) {
+            toast("Projected Charge is not set — saving with 0.", {
+                icon: "⚠️",
+            });
+            if (!confirm("Projected Charge is empty and will be saved as 0. Continue?"))
+                return;
+        }
 
         const res = await fetch(
             editing
@@ -481,6 +512,33 @@ export default function Patients() {
                                         })
                                     }
                                 />
+                            ) : f.type === "radio" ? (
+                                <div className="flex items-center gap-5 pt-2">
+                                    {(selectOptions[f.key] || []).map(
+                                        (o) => (
+                                            <label
+                                                key={o.value}
+                                                className="flex cursor-pointer items-center gap-1.5 text-sm"
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name={f.key}
+                                                    value={o.value}
+                                                    checked={
+                                                        form[f.key] === o.value
+                                                    }
+                                                    onChange={() =>
+                                                        setForm({
+                                                            ...form,
+                                                            [f.key]: o.value,
+                                                        })
+                                                    }
+                                                />
+                                                {o.label}
+                                            </label>
+                                        )
+                                    )}
+                                </div>
                             ) : f.type === "select" ? (
                                 <select
                                     className="input"
@@ -511,12 +569,16 @@ export default function Patients() {
                                             ? new Date(form[f.key])
                                             : null
                                     }
-                                    onChange={(d: Date | null) =>
+                                    onChange={(d: Date | null) => {
+                                        const v = d ? toYMD(d) : "";
                                         setForm({
                                             ...form,
-                                            [f.key]: d ? toYMD(d) : "",
-                                        })
-                                    }
+                                            [f.key]: v,
+                                            ...(f.key === "dateOfBirth"
+                                                ? { age: v ? ageFromDob(v) : form.age }
+                                                : {}),
+                                        });
+                                    }}
                                     dateFormat="dd/MM/yyyy"
                                     placeholderText="dd/mm/yyyy"
                                     className="input"
@@ -528,14 +590,20 @@ export default function Patients() {
                                 />
                             ) : (
                                 <Input
-                                    type={f.type}
+                                    type={f.type === "number" ? "number" : f.type}
+                                    step={f.type === "number" ? "0.01" : undefined}
+                                    min={f.type === "number" ? "0" : undefined}
                                     value={form[f.key]}
-                                    onChange={(e) =>
+                                    onChange={(e) => {
+                                        const v = e.target.value;
                                         setForm({
                                             ...form,
-                                            [f.key]: e.target.value,
-                                        })
-                                    }
+                                            [f.key]: v,
+                                            ...(f.key === "age"
+                                                ? { dateOfBirth: dobFromAge(v) || form.dateOfBirth }
+                                                : {}),
+                                        });
+                                    }}
                                     required={
                                         f.key === "name" ||
                                         f.key === "phone"
