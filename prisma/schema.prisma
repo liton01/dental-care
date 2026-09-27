@@ -135,6 +135,9 @@ model Payment {
   type           PaymentType   @default(PAYMENT)
   method         PaymentMethod @default(CASH)
   paymentDate    DateTime      @default(now())
+  walletProvider String?       @db.VarChar(20)
+  walletNumber   String?       @db.VarChar(20)
+  walletTrxId    String?       @db.VarChar(40)
   caseHistoryId  Int?
   caseHistory    CaseHistory?  @relation(fields: [caseHistoryId], references: [id], onDelete: SetNull)
   patient        Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)

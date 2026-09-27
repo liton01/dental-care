@@ -20,6 +20,8 @@ const fmtDate = (iso?: string | null) => {
 const TYPES = ["ADVANCE", "PAYMENT", "REFUND"];
 const METHODS = ["CASH", "CARD", "BANK", "MOBILE_BANKING", "OTHER"];
 
+const WALLETS = ["bKash", "Nagad", "Rocket"];
+
 const empty = {
     patientId: "",
     caseHistoryId: "",
@@ -30,6 +32,9 @@ const empty = {
     type: "PAYMENT",
     method: "CASH",
     paymentDate: "",
+    walletProvider: "",
+    walletNumber: "",
+    walletTrxId: "",
 };
 
 export default function BillCollection() {
@@ -157,6 +162,9 @@ export default function BillCollection() {
             type: p.type,
             method: p.method,
             paymentDate: p.paymentDate?.slice(0, 10) || "",
+            walletProvider: p.walletProvider || "",
+            walletNumber: p.walletNumber || "",
+            walletTrxId: p.walletTrxId || "",
         });
         setModalOpen(true);
     };
@@ -169,6 +177,17 @@ export default function BillCollection() {
 
     const save = async (e: any) => {
         e.preventDefault();
+
+        if (f.method === "MOBILE_BANKING") {
+            if (!f.walletProvider) {
+                toast.error("Select the mobile banking provider (bKash, Nagad or Rocket).");
+                return;
+            }
+            if (!f.walletTrxId.trim()) {
+                toast.error("Enter the wallet Transaction ID (TrxID).");
+                return;
+            }
+        }
 
         const res = await fetch(
             editing ? `/api/payments/${editing}` : "/api/payments",
@@ -358,7 +377,21 @@ export default function BillCollection() {
                                     </td>
 
                                     <td className="p-3">{p.type}</td>
-                                    <td className="p-3">{p.method}</td>
+                                    <td
+                                        className="p-3 whitespace-nowrap"
+                                        title={
+                                            p.walletTrxId
+                                                ? `TrxID: ${p.walletTrxId}${p.walletNumber ? ` · ${p.walletNumber}` : ""}`
+                                                : undefined
+                                        }
+                                    >
+                                        {p.walletProvider || p.method}
+                                        {p.walletTrxId && (
+                                            <span className="ml-1 text-xs text-slate-400">
+                                                #{p.walletTrxId}
+                                            </span>
+                                        )}
+                                    </td>
 
                                     <td className="p-3">
                                         ৳ {Number(p.amount).toFixed(2)}
@@ -654,7 +687,17 @@ export default function BillCollection() {
                             className="input"
                             value={f.method}
                             onChange={(e) =>
-                                setF({ ...f, method: e.target.value })
+                                setF({
+                                    ...f,
+                                    method: e.target.value,
+                                    ...(e.target.value !== "MOBILE_BANKING"
+                                        ? {
+                                              walletProvider: "",
+                                              walletNumber: "",
+                                              walletTrxId: "",
+                                          }
+                                        : {}),
+                                })
                             }
                         >
                             {METHODS.map((m) => (
@@ -662,6 +705,81 @@ export default function BillCollection() {
                             ))}
                         </select>
                     </div>
+
+                    {f.method === "MOBILE_BANKING" && (
+                        <div className="rounded-xl bg-pink-50/60 p-3 sm:col-span-2">
+                            <div className="mb-2 text-sm font-semibold text-slate-700">
+                                Mobile Banking Payment
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                <div>
+                                    <Label required>Provider</Label>
+
+                                    <div className="flex items-center gap-4 pt-2">
+                                        {WALLETS.map((w) => (
+                                            <label
+                                                key={w}
+                                                className="flex cursor-pointer items-center gap-1.5 text-sm"
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name="walletProvider"
+                                                    value={w}
+                                                    checked={
+                                                        f.walletProvider === w
+                                                    }
+                                                    onChange={() =>
+                                                        setF({
+                                                            ...f,
+                                                            walletProvider: w,
+                                                        })
+                                                    }
+                                                />
+                                                {w}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label>Sender Wallet No</Label>
+
+                                    <Input
+                                        value={f.walletNumber}
+                                        onChange={(e) =>
+                                            setF({
+                                                ...f,
+                                                walletNumber: e.target.value,
+                                            })
+                                        }
+                                        placeholder="01XXXXXXXXX"
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label required>Transaction ID</Label>
+
+                                    <Input
+                                        value={f.walletTrxId}
+                                        onChange={(e) =>
+                                            setF({
+                                                ...f,
+                                                walletTrxId:
+                                                    e.target.value.toUpperCase(),
+                                            })
+                                        }
+                                        placeholder="e.g. 9HK3XW2B1A"
+                                    />
+                                </div>
+                            </div>
+
+                            <p className="mt-2 text-xs text-slate-500">
+                                Receive the money on the clinic wallet, then
+                                record the TrxID here as proof of payment.
+                            </p>
+                        </div>
+                    )}
 
                     <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
                         <Button

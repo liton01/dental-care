@@ -19,6 +19,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     paidAmount: Number(b.paidAmount ?? b.amount), type: b.type || "PAYMENT",
     method: b.method || "CASH",
     paymentDate: b.paymentDate ? new Date(b.paymentDate) : undefined,
+    walletProvider: b.method === "MOBILE_BANKING" ? b.walletProvider || null : null,
+    walletNumber: b.method === "MOBILE_BANKING" ? b.walletNumber || null : null,
+    walletTrxId: b.method === "MOBILE_BANKING" ? b.walletTrxId || null : null,
     caseHistoryId: b.caseHistoryId ? Number(b.caseHistoryId) : null,
   }, include: { patient: true, caseHistory: true } });
   return ok(updated);
