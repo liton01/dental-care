@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Input, Label, Button, SearchSelect, Pagination } from "@/components/ui";
-import { Plus, Search, RotateCw, Pencil, Trash2, FolderOpen } from "lucide-react";
+import { Plus, Search, RotateCw, Pencil, Trash2, FolderOpen, Printer } from "lucide-react";
 import CaseFormModal from "@/components/case-form-modal";
 import toast from "react-hot-toast";
 
@@ -242,6 +242,15 @@ export default function CaseHistoryList() {
                                         >
                                             <FolderOpen size={16} />
                                         </button>
+
+                                        <a
+                                            className="inline-block rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
+                                            href={`/api/cases/${c.id}/prescription/pdf`}
+                                            target="_blank"
+                                            title="Print prescription"
+                                        >
+                                            <Printer size={16} />
+                                        </a>
 
                                         <button
                                             className="rounded-lg p-1.5 text-teal-700 hover:bg-teal-50"

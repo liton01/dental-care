@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Input, Label, Button, Textarea, Modal, SearchSelect } from "@/components/ui";
-import { X, Save } from "lucide-react";
+import { X, Save, Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -11,15 +11,17 @@ const toYMD = (d: Date) => {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
 
+const emptyMed = { medicineId: "", dosage: "", duration: "", instructions: "" };
+
 const empty = {
     patientId: "",
-    caseNo: "1",
     toothNumber: "",
     problem: "",
     treatment: "",
     details: "",
     caseDate: "",
-    status: "OPEN",
+    status: "IN_PROGRESS",
+    medicines: [] as any[],
 };
 
 export default function CaseFormModal({
@@ -36,7 +38,9 @@ export default function CaseFormModal({
     fixedPatientId?: string;
 }) {
     const [patients, setPatients] = useState<any[]>([]);
+    const [medicineList, setMedicineList] = useState<any[]>([]);
     const [f, setF] = useState<any>(empty);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (!fixedPatientId) {
@@ -44,6 +48,9 @@ export default function CaseFormModal({
                 .then((r) => r.json())
                 .then(setPatients);
         }
+        fetch("/api/medicines")
+            .then((r) => r.json())
+            .then((d) => setMedicineList(Array.isArray(d) ? d : []));
     }, [fixedPatientId]);
 
     useEffect(() => {
@@ -51,25 +58,62 @@ export default function CaseFormModal({
         if (caseData) {
             setF({
                 patientId: String(caseData.patientId),
-                caseNo: String(caseData.caseNo),
                 toothNumber: caseData.toothNumber || "",
                 problem: caseData.problem || "",
                 treatment: caseData.treatment || "",
                 details: caseData.details || "",
                 caseDate: caseData.caseDate?.slice(0, 10) || "",
-                status: caseData.status || "OPEN",
+                status:
+                    caseData.status === "CLOSED" ? "CLOSED" : "IN_PROGRESS",
+                medicines: [],
             });
+
+            // prefill the medicines from the case's prescription
+            fetch(`/api/cases/${caseData.id}`)
+                .then((r) => r.json())
+                .then((full) => {
+                    const items =
+                        full?.prescriptions?.flatMap((pr: any) => pr.items) ||
+                        [];
+                    if (items.length) {
+                        setF((prev: any) => ({
+                            ...prev,
+                            medicines: items.map((m: any) => ({
+                                medicineId: String(m.medicineId),
+                                dosage: m.dosage === "-" ? "" : m.dosage,
+                                duration: m.duration === "-" ? "" : m.duration,
+                                instructions: m.instructions || "",
+                            })),
+                        }));
+                    }
+                })
+                .catch(() => {});
         } else {
             setF({
                 ...empty,
                 patientId: fixedPatientId || "",
                 caseDate: toYMD(new Date()),
+                medicines: [],
             });
         }
     }, [open, caseData, fixedPatientId]);
 
+    const setMed = (i: number, k: string, v: string) => {
+        const medicines = [...f.medicines];
+        medicines[i] = { ...medicines[i], [k]: v };
+        setF({ ...f, medicines });
+    };
+
     const save = async (e: any) => {
         e.preventDefault();
+        if (saving) return;
+
+        if (f.medicines.some((m: any) => !m.medicineId)) {
+            toast.error("Pick a medicine for every line, or remove empty lines.");
+            return;
+        }
+
+        setSaving(true);
 
         const res = await fetch(
             caseData ? `/api/cases/${caseData.id}` : "/api/cases",
@@ -81,6 +125,7 @@ export default function CaseFormModal({
         );
 
         const saved = await res.json().catch(() => null);
+        setSaving(false);
 
         if (!res.ok) {
             toast.error(saved?.error || "Failed to save case.");
@@ -95,7 +140,11 @@ export default function CaseFormModal({
     return (
         <Modal
             open={open}
-            title={caseData ? "Update Case History" : "New Case History"}
+            title={
+                caseData
+                    ? `Update Case-${String(caseData.caseNo).padStart(2, "0")}`
+                    : "New Case History"
+            }
             onClose={onClose}
         >
             <form
@@ -120,48 +169,16 @@ export default function CaseFormModal({
                 )}
 
                 <div>
-                    <Label>Case</Label>
-
-                    <select
-                        className="input"
-                        value={f.caseNo}
-                        onChange={(e) =>
-                            setF({ ...f, caseNo: e.target.value })
-                        }
-                    >
-                        {[1, 2, 3, 4].map((n) => (
-                            <option key={n} value={n}>
-                                Case-{String(n).padStart(2, "0")}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div>
-                    <Label>Status</Label>
-
-                    <select
-                        className="input"
-                        value={f.status}
-                        onChange={(e) =>
-                            setF({ ...f, status: e.target.value })
-                        }
-                    >
-                        <option value="OPEN">Open</option>
-                        <option value="IN_PROGRESS">In Progress</option>
-                        <option value="COMPLETED">Completed</option>
-                        <option value="CLOSED">Closed</option>
-                    </select>
-                </div>
-
-                <div>
-                    <Label>Tooth Number</Label>
+                    <Label>Case No</Label>
 
                     <Input
-                        value={f.toothNumber}
-                        onChange={(e) =>
-                            setF({ ...f, toothNumber: e.target.value })
+                        value={
+                            caseData
+                                ? `Case-${String(caseData.caseNo).padStart(2, "0")}`
+                                : "Auto generated"
                         }
+                        readOnly
+                        className="bg-slate-50 text-slate-500"
                     />
                 </div>
 
@@ -179,6 +196,44 @@ export default function CaseFormModal({
                         wrapperClassName="w-full"
                         isClearable
                     />
+                </div>
+
+                <div>
+                    <Label>Tooth Number</Label>
+
+                    <Input
+                        value={f.toothNumber}
+                        onChange={(e) =>
+                            setF({ ...f, toothNumber: e.target.value })
+                        }
+                    />
+                </div>
+
+                <div>
+                    <Label>Status</Label>
+
+                    <div className="flex items-center gap-5 pt-2">
+                        {[
+                            ["IN_PROGRESS", "In Progress"],
+                            ["CLOSED", "Closed"],
+                        ].map(([val, label]) => (
+                            <label
+                                key={val}
+                                className="flex cursor-pointer items-center gap-1.5 text-sm"
+                            >
+                                <input
+                                    type="radio"
+                                    name="caseStatus"
+                                    value={val}
+                                    checked={f.status === val}
+                                    onChange={() =>
+                                        setF({ ...f, status: val })
+                                    }
+                                />
+                                {label}
+                            </label>
+                        ))}
+                    </div>
                 </div>
 
                 <div className="sm:col-span-2">
@@ -203,6 +258,106 @@ export default function CaseFormModal({
                     />
                 </div>
 
+                {/* Prescription medicines */}
+                <div className="sm:col-span-2">
+                    <div className="mb-1 flex items-center justify-between border-b pb-1.5">
+                        <span className="text-sm font-semibold text-slate-700">
+                            Prescription Medicines
+                        </span>
+
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() =>
+                                setF({
+                                    ...f,
+                                    medicines: [
+                                        ...f.medicines,
+                                        { ...emptyMed },
+                                    ],
+                                })
+                            }
+                        >
+                            <Plus size={15} className="mr-1.5" />
+                            Medicine
+                        </Button>
+                    </div>
+
+                    {f.medicines.length === 0 && (
+                        <p className="py-2 text-xs text-slate-500">
+                            No medicines added. Use + Medicine to add lines
+                            for the printed prescription.
+                        </p>
+                    )}
+
+                    {f.medicines.map((m: any, i: number) => (
+                        <div
+                            key={i}
+                            className="mt-2 rounded-xl bg-slate-50 p-3"
+                        >
+                            <div className="mb-2 flex items-center justify-between">
+                                <span className="text-xs font-medium text-slate-500">
+                                    Medicine {i + 1}
+                                </span>
+
+                                <button
+                                    type="button"
+                                    className="text-red-600"
+                                    onClick={() =>
+                                        setF({
+                                            ...f,
+                                            medicines: f.medicines.filter(
+                                                (_: any, j: number) => j !== i
+                                            ),
+                                        })
+                                    }
+                                    title="Remove medicine"
+                                >
+                                    <Trash2 size={15} />
+                                </button>
+                            </div>
+
+                            <SearchSelect
+                                options={medicineList.map((md: any) => ({
+                                    value: String(md.id),
+                                    label: `${md.name}${md.strength ? ` ${md.strength} ${md.unit || ""}` : ""}${md.dosageForm ? ` (${md.dosageForm})` : ""}`,
+                                }))}
+                                value={m.medicineId}
+                                onChange={(v) => setMed(i, "medicineId", v)}
+                                placeholder="Search medicine..."
+                                required
+                            />
+
+                            <div className="mt-2 grid grid-cols-2 gap-2">
+                                <Input
+                                    placeholder="Dosage (e.g. 1+0+1)"
+                                    value={m.dosage}
+                                    onChange={(e) =>
+                                        setMed(i, "dosage", e.target.value)
+                                    }
+                                />
+
+                                <Input
+                                    placeholder="Duration (e.g. 7 days)"
+                                    value={m.duration}
+                                    onChange={(e) =>
+                                        setMed(i, "duration", e.target.value)
+                                    }
+                                />
+                            </div>
+
+                            <Input
+                                className="mt-2"
+                                placeholder="Instructions (e.g. after meal)"
+                                value={m.instructions}
+                                onChange={(e) =>
+                                    setMed(i, "instructions", e.target.value)
+                                }
+                            />
+                        </div>
+                    ))}
+                </div>
+
                 <div className="sm:col-span-2">
                     <Label>Remarks</Label>
 
@@ -224,7 +379,7 @@ export default function CaseFormModal({
                         Cancel
                     </Button>
 
-                    <Button type="submit">
+                    <Button type="submit" disabled={saving}>
                         <Save size={16} className="mr-1.5" />
                         {caseData ? "Update" : "Save Case History"}
                     </Button>

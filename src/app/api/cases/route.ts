@@ -27,8 +27,31 @@ export async function GET(req: Request) {
   }
   return ok(await db.caseHistory.findMany({ where, include: { patient: true, prescriptions: true }, orderBy: [{ patientId: "asc" }, { caseNo: "asc" }] }));
 }
+async function syncPrescription(caseId: number, patientId: number, diagnosis: string | null, medicines: any[]) {
+  const lines = (medicines || []).filter((m: any) => m?.medicineId);
+  const existing = await db.prescription.findFirst({ where: { caseHistoryId: caseId }, orderBy: { id: "asc" } });
+  if (!lines.length) return existing;
+  const items = lines.map((m: any) => ({
+    medicineId: Number(m.medicineId),
+    dosage: m.dosage?.trim() || "-",
+    duration: m.duration?.trim() || "-",
+    instructions: m.instructions?.trim() || null,
+  }));
+  if (existing) {
+    await db.prescriptionItem.deleteMany({ where: { prescriptionId: existing.id } });
+    return db.prescription.update({ where: { id: existing.id }, data: { diagnosis, items: { create: items } } });
+  }
+  return db.prescription.create({ data: { patientId, caseHistoryId: caseId, diagnosis, items: { create: items } } });
+}
+
 export async function POST(req: Request) {
   if (!await requireSession()) return bad("Unauthorized", 401);
-  const b = await parseBody(req); if (!b?.patientId || !b?.caseNo) return bad("Patient and case number are required.");
-  return ok(await db.caseHistory.create({ data: { patientId: Number(b.patientId), caseNo: Number(b.caseNo), toothNumber: b.toothNumber || null, problem: b.problem || null, treatment: b.treatment || null, details: b.details || null, caseDate: b.caseDate ? new Date(b.caseDate) : new Date(), status: b.status || "OPEN" } }), 201);
+  const b = await parseBody(req); if (!b?.patientId) return bad("Patient is required.");
+  const patientId = Number(b.patientId);
+  // auto-generate the next case number for this patient
+  const last = await db.caseHistory.findFirst({ where: { patientId }, orderBy: { caseNo: "desc" } });
+  const caseNo = (last?.caseNo || 0) + 1;
+  const c = await db.caseHistory.create({ data: { patientId, caseNo, toothNumber: b.toothNumber || null, problem: b.problem || null, treatment: b.treatment || null, details: b.details || null, caseDate: b.caseDate ? new Date(b.caseDate) : new Date(), status: b.status || "IN_PROGRESS" } });
+  await syncPrescription(c.id, patientId, b.problem || null, b.medicines);
+  return ok(c, 201);
 }
