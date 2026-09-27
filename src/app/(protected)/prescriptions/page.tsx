@@ -126,7 +126,7 @@ export default function Prescriptions() {
                     >
                         {/* Patient */}
                         <div>
-                            <Label>Patient</Label>
+                            <Label required>Patient</Label>
 
                             <select
                                 className="input"
@@ -158,7 +158,7 @@ export default function Prescriptions() {
 
                         {/* Case */}
                         <div>
-                            <Label>Case</Label>
+                            <Label required>Case</Label>
 
                             <select
                                 className="input"

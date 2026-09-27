@@ -341,7 +341,7 @@ export default function Medicines() {
                     className="grid grid-cols-1 gap-3 sm:grid-cols-2"
                 >
                     <div className="sm:col-span-2">
-                        <Label>Medicine Name</Label>
+                        <Label required>Medicine Name</Label>
 
                         <Input
                             value={f.name}

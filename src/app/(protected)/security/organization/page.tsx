@@ -266,7 +266,9 @@ export default function Organization() {
                             key={f.key}
                             className={f.full ? "sm:col-span-2" : ""}
                         >
-                            <Label>{f.label}</Label>
+                            <Label required={f.key === "nameEn"}>
+                                {f.label}
+                            </Label>
 
                             {f.key === "slogan" ? (
                                 <Textarea

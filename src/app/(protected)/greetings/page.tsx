@@ -99,7 +99,7 @@ export default function Greetings() {
                 <Card className="max-w-2xl p-5">
                     <div className="space-y-3">
                         <div>
-                            <Label>Patient</Label>
+                            <Label required>Patient</Label>
 
                             <SearchSelect
                                 options={patients.map((p) => ({
@@ -115,7 +115,7 @@ export default function Greetings() {
                         </div>
 
                         <div>
-                            <Label>Template</Label>
+                            <Label required>Template</Label>
 
                             <select
                                 className="input"
@@ -155,7 +155,7 @@ export default function Greetings() {
 
                         <form onSubmit={save} className="space-y-3">
                             <div>
-                                <Label>Name</Label>
+                                <Label required>Name</Label>
 
                                 <Input
                                     value={f.name}

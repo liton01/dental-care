@@ -455,7 +455,7 @@ export default function ChartOfAccounts() {
                         </div>
 
                         <div>
-                            <Label>Name</Label>
+                            <Label required>Name</Label>
 
                             <Input
                                 value={name}

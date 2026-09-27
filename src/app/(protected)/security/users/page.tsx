@@ -86,8 +86,8 @@ export default function Security() {
                     >
                         {["name", "email", "password"].map((k) => (
                             <div key={k}>
-                                <Label>
-                                    {k}
+                                <Label required>
+                                    {k.charAt(0).toUpperCase() + k.slice(1)}
                                 </Label>
 
                                 <Input
@@ -109,7 +109,7 @@ export default function Security() {
                         ))}
 
                         <div>
-                            <Label>
+                            <Label required>
                                 Role
                             </Label>
 

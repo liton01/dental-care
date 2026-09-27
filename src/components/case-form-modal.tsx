@@ -153,7 +153,7 @@ export default function CaseFormModal({
             >
                 {!fixedPatientId && !caseData && (
                     <div className="sm:col-span-2">
-                        <Label>Patient</Label>
+                        <Label required>Patient</Label>
 
                         <SearchSelect
                             options={patients.map((p) => ({

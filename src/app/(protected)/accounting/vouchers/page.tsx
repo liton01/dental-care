@@ -682,7 +682,7 @@ export default function JournalVouchers() {
 
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <div>
-                                <Label>Voucher Date</Label>
+                                <Label required>Voucher Date</Label>
 
                                 <DatePicker
                                     selected={
@@ -795,7 +795,7 @@ export default function JournalVouchers() {
                                 </div>
 
                                 <div className="mb-2">
-                                    <Label>Account Head</Label>
+                                    <Label required>Account Head</Label>
 
                                     <SearchSelect
                                         options={accounts.map((a) => ({

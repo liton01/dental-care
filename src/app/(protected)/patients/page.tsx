@@ -500,7 +500,13 @@ export default function Patients() {
                                     : ""
                             }
                         >
-                            <Label>{f.label}</Label>
+                            <Label
+                                required={
+                                    f.key === "name" || f.key === "phone"
+                                }
+                            >
+                                {f.label}
+                            </Label>
 
                             {f.type === "textarea" ? (
                                 <Textarea

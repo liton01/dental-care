@@ -47,7 +47,7 @@ export default function Login() {
 
                 <form className="space-y-4" onSubmit={submit}>
                     <div>
-                        <Label>Email</Label>
+                        <Label required>Email</Label>
 
                         <Input
                             value={email}
@@ -58,7 +58,7 @@ export default function Login() {
                     </div>
 
                     <div>
-                        <Label>Password</Label>
+                        <Label required>Password</Label>
 
                         <Input
                             value={password}

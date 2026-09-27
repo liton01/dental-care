@@ -498,7 +498,7 @@ export default function BillCollection() {
                     className="grid grid-cols-1 gap-3 sm:grid-cols-2"
                 >
                     <div className="sm:col-span-2">
-                        <Label>Patient</Label>
+                        <Label required>Patient</Label>
 
                         <SearchSelect
                             options={patients.map((p) => ({
@@ -555,7 +555,7 @@ export default function BillCollection() {
                     </div>
 
                     <div>
-                        <Label>Amount</Label>
+                        <Label required>Amount</Label>
 
                         <Input
                             type="number"
