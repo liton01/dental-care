@@ -26,7 +26,7 @@ const empty = {
     description: "",
     amount: "",
     discount: "0",
-    paidAmount: "",
+    dueAmount: "0",
     type: "PAYMENT",
     method: "CASH",
     paymentDate: "",
@@ -146,7 +146,14 @@ export default function BillCollection() {
             description: p.description || "",
             amount: String(p.amount),
             discount: String(p.discount ?? 0),
-            paidAmount: String(p.paidAmount),
+            dueAmount: String(
+                Math.max(
+                    0,
+                    Number(p.amount) -
+                        Number(p.discount ?? 0) -
+                        Number(p.paidAmount)
+                )
+            ),
             type: p.type,
             method: p.method,
             paymentDate: p.paymentDate?.slice(0, 10) || "",
@@ -170,7 +177,7 @@ export default function BillCollection() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...f,
-                    paidAmount: f.paidAmount || f.amount,
+                    paidAmount: totalPaid,
                 }),
             }
         );
@@ -208,6 +215,14 @@ export default function BillCollection() {
     };
 
     const pageTotal = items.reduce((s, p) => s + Number(p.paidAmount), 0);
+
+    // Total Paid = Amount - Discount - Due (never below zero)
+    const totalPaid = Math.max(
+        0,
+        Number(f.amount || 0) -
+            Number(f.discount || 0) -
+            Number(f.dueAmount || 0)
+    );
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     return (
@@ -567,16 +582,26 @@ export default function BillCollection() {
                     </div>
 
                     <div>
-                        <Label>Paid Amount</Label>
+                        <Label>Due Amount</Label>
 
                         <Input
                             type="number"
                             step="0.01"
-                            value={f.paidAmount}
+                            min="0"
+                            value={f.dueAmount}
                             onChange={(e) =>
-                                setF({ ...f, paidAmount: e.target.value })
+                                setF({ ...f, dueAmount: e.target.value })
                             }
-                            placeholder="Defaults to amount"
+                        />
+                    </div>
+
+                    <div>
+                        <Label>Total Paid</Label>
+
+                        <Input
+                            value={totalPaid.toFixed(2)}
+                            readOnly
+                            className="bg-slate-50 font-semibold text-teal-700"
                         />
                     </div>
 

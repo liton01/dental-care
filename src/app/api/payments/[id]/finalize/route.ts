@@ -10,7 +10,12 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   const id = Number(params.id);
   const existing = await db.accVoucher.findUnique({ where: { paymentId: id } });
   if (existing?.isPosted === "Y") return bad("Voucher is already posted. Unpost it first.");
-  const v = await generateVoucherForPayment(id, session.user?.email || session.user?.name);
-  if (!v) return bad("Nothing to finalize: paid amount must be greater than zero.");
-  return ok(v);
+  try {
+    const v = await generateVoucherForPayment(id, session.user?.email || session.user?.name);
+    if (!v) return bad("Nothing to finalize: paid amount must be greater than zero.");
+    return ok(v);
+  } catch (e: any) {
+    console.error("Finalize failed:", e);
+    return bad("Finalize failed: " + (e?.message?.split("\n").pop() || "unknown error"), 500);
+  }
 }
