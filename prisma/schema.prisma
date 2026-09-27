@@ -138,6 +138,7 @@ model Payment {
   walletProvider String?       @db.VarChar(20)
   walletNumber   String?       @db.VarChar(20)
   walletTrxId    String?       @db.VarChar(40)
+  bkashPaymentId String?       @db.VarChar(50)
   caseHistoryId  Int?
   caseHistory    CaseHistory?  @relation(fields: [caseHistoryId], references: [id], onDelete: SetNull)
   patient        Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)

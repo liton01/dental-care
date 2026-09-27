@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Modal, SearchSelect, Pagination } from "@/components/ui";
-import { Plus, X, Save, Pencil, Trash2, RotateCw, FileCheck2 } from "lucide-react";
+import { Plus, X, Save, Pencil, Trash2, RotateCw, FileCheck2, Smartphone } from "lucide-react";
 import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -112,6 +112,19 @@ export default function BillCollection() {
             .then(setPatients);
         load();
 
+        // returning from bKash checkout
+        const bsp = new URLSearchParams(window.location.search);
+        const bkash = bsp.get("bkash");
+        if (bkash) {
+            if (bkash === "success")
+                toast.success(`bKash payment completed. TrxID ${bsp.get("trx") || ""}`);
+            else if (bkash === "cancel")
+                toast.error("bKash payment was cancelled.");
+            else
+                toast.error(`bKash payment failed${bsp.get("reason") ? `: ${bsp.get("reason")}` : "."}`);
+            window.history.replaceState(null, "", "/payments");
+        }
+
         // arriving from case history: ?patientId=..&caseId=..
         const sp = new URLSearchParams(window.location.search);
         const pid = sp.get("patientId");
@@ -183,7 +196,7 @@ export default function BillCollection() {
                 toast.error("Select the mobile banking provider (bKash, Nagad or Rocket).");
                 return;
             }
-            if (!f.walletTrxId.trim()) {
+            if (f.walletProvider !== "bKash" && !f.walletTrxId.trim()) {
                 toast.error("Enter the wallet Transaction ID (TrxID).");
                 return;
             }
@@ -218,6 +231,20 @@ export default function BillCollection() {
         if (r.ok) toast.success("Transaction deleted");
         else toast.error("Failed to delete transaction.");
         load();
+    };
+
+    const payWithBkash = async (p: any) => {
+        const r = await fetch("/api/bkash/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: p.id }),
+        });
+        const d = await r.json().catch(() => null);
+        if (!r.ok || !d?.bkashURL) {
+            toast.error(d?.error || "Could not start bKash payment.");
+            return;
+        }
+        window.location.href = d.bkashURL;
     };
 
     const finalize = async (p: any) => {
@@ -437,6 +464,20 @@ export default function BillCollection() {
                                     </td>
 
                                     <td className="p-3 whitespace-nowrap">
+                                        {!p.voucher &&
+                                            !p.walletTrxId &&
+                                            p.method === "MOBILE_BANKING" &&
+                                            (p.walletProvider === "bKash" ||
+                                                !p.walletProvider) && (
+                                                <button
+                                                    className="rounded-lg p-1.5 text-pink-600 hover:bg-pink-50"
+                                                    onClick={() => payWithBkash(p)}
+                                                    title="Collect via bKash checkout"
+                                                >
+                                                    <Smartphone size={16} />
+                                                </button>
+                                            )}
+
                                         {!p.voucher && (
                                             <button
                                                 className="rounded-lg p-1.5 text-emerald-700 hover:bg-emerald-50"
@@ -775,8 +816,9 @@ export default function BillCollection() {
                             </div>
 
                             <p className="mt-2 text-xs text-slate-500">
-                                Receive the money on the clinic wallet, then
-                                record the TrxID here as proof of payment.
+                                {f.walletProvider === "bKash"
+                                    ? "Save first, then use the bKash icon on the row to open the official bKash checkout — the TrxID fills in automatically after payment."
+                                    : "Receive the money on the clinic wallet, then record the TrxID here as proof of payment."}
                             </p>
                         </div>
                     )}
