@@ -242,7 +242,7 @@ export default function CaseFormModal({
                 </div>
 
                 <div>
-                    <Label>Follow-up Day</Label>
+                    <Label>Next Follow-up Date</Label>
 
                     <DatePicker
                         selected={

@@ -8,7 +8,7 @@ const items = [
     ["Dashboard", "/dashboard", "▦"],
     ["Patients", "/patients", "◉"],
     ["Case History", "/cases/list", "▤"],
-    ["Prescriptions", "/prescriptions", "℞"],
+    ["Next Follow-up", "/follow-ups", "℞"],
     ["Greetings", "/greetings", "✉"],
 ];
 
