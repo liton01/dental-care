@@ -17,8 +17,8 @@ const POS = {
   age:     { x: 147, y: 42.2 },   // after "Age:"
   date:    { x: 172, y: 42.2 },   // after "Date:"
   cc:      { x: 16,  y: 60, w: 58 },  // C/C block (problem)
-  bp:      { x: 26,  y: 140 },  // after "B/P:"
-  adv:     { x: 16,  y: 205, w: 58 }, // ADV: block (remarks)
+  bp:      { x: 13,  y: 140 },  // after "B/P:"
+  adv:     { x: 6,   y: 205, w: 60 }, // ADV: block (remarks)
   rx:      { x: 82,  y: 58, w: 115 }, // Rx column (medicines)
 };
 
