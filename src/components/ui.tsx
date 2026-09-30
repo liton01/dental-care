@@ -1,8 +1,7 @@
 import React from "react";
 import { X } from "lucide-react";
-export function Button({className="",variant="primary",...p}: React.ButtonHTMLAttributes<HTMLButtonElement>&{variant?: "primary"|"secondary"|"ghost"|"update"}) {
-  const cls = variant==="primary"?"btn-primary":variant==="ghost"?"btn-ghost":variant==="update"?"btn-update":"btn-secondary";
-  return <button className={`${cls} ${className}`} {...p}/>;
+export function Button({className="",variant="primary",...p}: React.ButtonHTMLAttributes<HTMLButtonElement>&{variant?: "primary"|"secondary"}) {
+  return <button className={`${variant==="primary"?"btn-primary":"btn-secondary"} ${className}`} {...p}/>;
 }
 export function Card({className="",...p}: React.HTMLAttributes<HTMLDivElement>) { return <div className={`card ${className}`} {...p}/>; }
 export function Input(p: React.InputHTMLAttributes<HTMLInputElement>) { return <input className="input" {...p}/>; }
