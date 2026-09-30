@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card, Button } from "@/components/ui";
-import { Plus, ArrowLeft, Pencil, Trash2, Printer } from "lucide-react";
+import { Plus, ArrowLeft, Pencil, Trash2, Printer, Stamp } from "lucide-react";
 import CaseFormModal from "@/components/case-form-modal";
 import toast from "react-hot-toast";
 
@@ -114,9 +114,18 @@ export default function PatientCaseHistory() {
                                         className="inline-block rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
                                         href={`/api/cases/${c.id}/prescription/pdf`}
                                         target="_blank"
-                                        title="Print prescription"
+                                        title="Print prescription (full page)"
                                     >
                                         <Printer size={15} />
+                                    </a>
+
+                                    <a
+                                        className="inline-block rounded-lg p-1.5 text-indigo-600 hover:bg-indigo-50"
+                                        href={`/api/cases/${c.id}/prescription/pad`}
+                                        target="_blank"
+                                        title="Print on pad (values only)"
+                                    >
+                                        <Stamp size={15} />
                                     </a>
 
                                     <button

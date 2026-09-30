@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Input, Label, Button, SearchSelect, Pagination } from "@/components/ui";
-import { Plus, Search, RotateCw, Pencil, Trash2, FolderOpen, Printer } from "lucide-react";
+import { Plus, Search, RotateCw, Pencil, Trash2, FolderOpen, Printer, Stamp } from "lucide-react";
 import CaseFormModal from "@/components/case-form-modal";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -299,9 +299,18 @@ export default function CaseHistoryList() {
                                             className="inline-block rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
                                             href={`/api/cases/${c.id}/prescription/pdf`}
                                             target="_blank"
-                                            title="Print prescription"
+                                            title="Print prescription (full page)"
                                         >
                                             <Printer size={16} />
+                                        </a>
+
+                                        <a
+                                            className="inline-block rounded-lg p-1.5 text-indigo-600 hover:bg-indigo-50"
+                                            href={`/api/cases/${c.id}/prescription/pad`}
+                                            target="_blank"
+                                            title="Print on pad (values only, for the pre-printed pad)"
+                                        >
+                                            <Stamp size={16} />
                                         </a>
 
                                         <button
