@@ -54,7 +54,7 @@ enum UserStatus {
 
 model Patient {
   id             Int             @id @default(autoincrement())
-  patientNo      String          @unique @default(cuid())
+  patientNo      String          @unique
   name           String
   age            Int?
   dateOfBirth    DateTime?

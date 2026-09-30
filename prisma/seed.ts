@@ -135,7 +135,28 @@ async function seedMedicines() {
   console.log("Seeded medicines");
 }
 
+async function fixPatientNos() {
+  const all = await prisma.patient.findMany({ orderBy: { id: "asc" }, select: { id: true, patientNo: true } });
+  const valid = /^P-\d{4}$/;
+  let max = 0;
+  for (const p of all) {
+    if (valid.test(p.patientNo)) {
+      const n = Number(p.patientNo.slice(2));
+      if (n > max) max = n;
+    }
+  }
+  for (const p of all) {
+    if (!valid.test(p.patientNo)) {
+      max += 1;
+      const newNo = `P-${String(max).padStart(4, "0")}`;
+      await prisma.patient.update({ where: { id: p.id }, data: { patientNo: newNo } });
+      console.log(`Patient ${p.id}: ${p.patientNo} -> ${newNo}`);
+    }
+  }
+}
+
 async function main() {
+  await fixPatientNos();
   await seedMedicines();
   await seedChartOfAccounts();
   await seedOrganization();

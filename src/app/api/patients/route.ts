@@ -39,11 +39,40 @@ export async function GET(req: Request) {
   });
   return ok(patients);
 }
+// next sequential patient number: P-0001, P-0002, ...
+async function nextPatientNo() {
+  const rows = await db.patient.findMany({
+    where: { patientNo: { startsWith: "P-" } },
+    select: { patientNo: true },
+  });
+  let max = 0;
+  for (const r of rows) {
+    const n = Number(r.patientNo.slice(2));
+    if (!isNaN(n) && n > max) max = n;
+  }
+  return `P-${String(max + 1).padStart(4, "0")}`;
+}
+
 export async function POST(req: Request) {
   if (!await requireSession()) return bad("Unauthorized", 401);
   const body = await parseBody(req);
   if (!body?.name || !body?.phone) return bad("Name and phone are required.");
+  // two attempts in case two registrations race for the same number
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      return await createPatient(body);
+    } catch (e: any) {
+      if (e?.code === "P2002" && attempt === 0) continue;
+      console.error("Patient create failed:", e);
+      return bad("Save failed: " + (e?.message?.split("\n").pop()?.trim() || "unknown error"), 500);
+    }
+  }
+  return bad("Could not assign a patient number, try again.", 500);
+}
+
+async function createPatient(body: any) {
   const patient = await db.patient.create({ data: {
+    patientNo: await nextPatientNo(),
     name: body.name, age: body.age ? Number(body.age) : null, phone: body.phone,
     email: body.email || null, address: body.address || null, photoUrl: body.photoUrl || null,
     gender: body.gender || null, bloodGroup: body.bloodGroup || null, projectedCharge: Number(body.projectedCharge || 0), dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null,
