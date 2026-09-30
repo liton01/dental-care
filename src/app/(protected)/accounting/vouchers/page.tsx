@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Modal, SearchSelect, Pagination, Textarea } from "@/components/ui";
-import { Search, RotateCw, Eye, Pencil, Trash2, X, Save, Plus, CheckCircle2, Undo2, Loader2 } from "lucide-react";
+import { Search, RotateCw, Eye, Pencil, Trash2, X, Save, Plus, CheckCircle2, Undo2 } from "lucide-react";
 import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -56,7 +56,6 @@ export default function JournalVouchers() {
     const [pageSize, setPageSize] = useState(10);
     const [total, setTotal] = useState(0);
     const [checked, setChecked] = useState<number[]>([]);
-    const [busy, setBusy] = useState<"" | "post" | "unpost">("");
 
     const [viewV, setViewV] = useState<any | null>(null);
     const [editV, setEditV] = useState<any | null>(null); // voucher being edited, null when adding
@@ -154,12 +153,11 @@ export default function JournalVouchers() {
             if (!items.length) return;
             ids = items.map((v) => v.id);
         }
-        setBusy(action);
         const r = await fetch("/api/vouchers/post", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ids, action }),
-        }).finally(() => setBusy(""));
+        });
         if (!r.ok) {
             toast.error((await r.json()).error || "Action failed");
             return;
@@ -353,37 +351,21 @@ export default function JournalVouchers() {
 
                     <Button
                         onClick={() => batch("post")}
-                        disabled={!items.length || !!busy}
-                        className={busy === "post" ? "!bg-teal-900" : ""}
+                        disabled={!items.length}
                         title="Post the ticked vouchers, or all shown when none are ticked"
                     >
-                        {busy === "post" ? (
-                            <Loader2 size={16} className="mr-1.5 animate-spin" />
-                        ) : (
-                            <CheckCircle2 size={16} className="mr-1.5" />
-                        )}
-                        {busy === "post"
-                            ? "Posting..."
-                            : `Post Selected (${checked.length || "All"})`}
+                        <CheckCircle2 size={16} className="mr-1.5" />
+                        Post Selected ({checked.length || "All"})
                     </Button>
 
                     <Button
                         variant="secondary"
                         onClick={() => batch("unpost")}
-                        disabled={!items.length || !!busy}
-                        className={
-                            busy === "unpost"
-                                ? "!bg-amber-100 !text-amber-900"
-                                : ""
-                        }
+                        disabled={!items.length}
                         title="Unpost the ticked vouchers, or all shown when none are ticked"
                     >
-                        {busy === "unpost" ? (
-                            <Loader2 size={16} className="mr-1.5 animate-spin" />
-                        ) : (
-                            <Undo2 size={16} className="mr-1.5" />
-                        )}
-                        {busy === "unpost" ? "Unposting..." : "Unpost Selected"}
+                        <Undo2 size={16} className="mr-1.5" />
+                        Unpost Selected
                     </Button>
                 </div>
 
