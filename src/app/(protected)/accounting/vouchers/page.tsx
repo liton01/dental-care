@@ -146,19 +146,8 @@ export default function JournalVouchers() {
             c.length === items.length ? [] : items.map((v) => v.id)
         );
 
-    const batch = async (action: "post" | "unpost", explicit?: number[]) => {
-        let ids = explicit ?? checked;
-        if (!ids.length) {
-            // nothing ticked: act on everything currently listed
-            if (!items.length) return;
-            if (
-                !confirm(
-                    `No vouchers ticked. ${action === "post" ? "Post" : "Unpost"} all ${items.length} vouchers shown in the list?`
-                )
-            )
-                return;
-            ids = items.map((v) => v.id);
-        }
+    const batch = async (action: "post" | "unpost", ids = checked) => {
+        if (!ids.length) return;
         const r = await fetch("/api/vouchers/post", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -357,18 +346,18 @@ export default function JournalVouchers() {
 
                     <Button
                         onClick={() => batch("post")}
-                        disabled={!items.length}
-                        title="Post the ticked vouchers, or all shown when none are ticked"
+                        disabled={!checked.length}
+                        title="Post the selected vouchers"
                     >
                         <CheckCircle2 size={16} className="mr-1.5" />
-                        Post Selected ({checked.length || "All"})
+                        Post Selected ({checked.length})
                     </Button>
 
                     <Button
                         variant="secondary"
                         onClick={() => batch("unpost")}
-                        disabled={!items.length}
-                        title="Unpost the ticked vouchers, or all shown when none are ticked"
+                        disabled={!checked.length}
+                        title="Unpost the selected vouchers"
                     >
                         <Undo2 size={16} className="mr-1.5" />
                         Unpost Selected
@@ -408,14 +397,7 @@ export default function JournalVouchers() {
                                 const t = sums(v);
 
                                 return (
-                                    <tr
-                                        key={v.id}
-                                        className="cursor-pointer border-b hover:bg-slate-50"
-                                        onClick={(e: any) => {
-                                            if (e.target.closest("button,a,input")) return;
-                                            toggleCheck(v.id);
-                                        }}
-                                    >
+                                    <tr key={v.id} className="border-b">
                                         <td className="p-3">
                                             <input
                                                 type="checkbox"
