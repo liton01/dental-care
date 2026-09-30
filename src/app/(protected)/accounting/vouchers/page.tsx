@@ -151,6 +151,12 @@ export default function JournalVouchers() {
         if (!ids.length) {
             // nothing ticked: act on everything currently listed
             if (!items.length) return;
+            if (
+                !confirm(
+                    `No vouchers ticked. ${action === "post" ? "Post" : "Unpost"} all ${items.length} vouchers shown in the list?`
+                )
+            )
+                return;
             ids = items.map((v) => v.id);
         }
         const r = await fetch("/api/vouchers/post", {
