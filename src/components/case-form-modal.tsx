@@ -137,7 +137,7 @@ export default function CaseFormModal({
         toast.success(caseData ? "Case updated" : "Case history saved");
 
         if (print && saved?.id) {
-            window.open(`/api/cases/${saved.id}/prescription/pdf`, "_blank");
+            window.open(`/api/cases/${saved.id}/prescription/pad`, "_blank");
         }
 
         onClose();
