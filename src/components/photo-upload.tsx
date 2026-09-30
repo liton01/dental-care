@@ -53,7 +53,7 @@ export default function PhotoUpload({
             <div className="flex flex-col gap-1.5">
                 <button
                     type="button"
-                    className="btn-secondary !px-3 !py-1.5 text-xs"
+                    className="btn-secondary !h-8 !rounded-lg !px-3 text-xs"
                     onClick={() => inputRef.current?.click()}
                 >
                     <Camera size={14} className="mr-1.5" />
@@ -63,7 +63,7 @@ export default function PhotoUpload({
                 {value && (
                     <button
                         type="button"
-                        className="btn-secondary !px-3 !py-1.5 text-xs !text-red-600"
+                        className="btn-secondary !h-8 !rounded-lg !px-3 text-xs !text-red-600"
                         onClick={() => onChange("")}
                     >
                         <X size={14} className="mr-1.5" />

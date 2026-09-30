@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Input, Label, Button, Textarea, Modal, SearchSelect } from "@/components/ui";
-import { X, Save, Plus, Trash2, Printer } from "lucide-react";
+import { X, Save, Plus, Trash2, Printer, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -379,27 +379,32 @@ export default function CaseFormModal({
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex gap-2">
+                    <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-col-reverse gap-2 sm:flex-row">
                             <Button
                                 type="button"
-                                variant="secondary"
+                                variant="ghost"
                                 onClick={onClose}
+                                disabled={saving}
+                                aria-label="Cancel and close without saving"
+                                className="w-full sm:w-auto"
                             >
-                                <X size={16} className="mr-1.5" />
+                                <X size={16} />
                                 Cancel
                             </Button>
 
                             <Button
                                 type="submit"
+                                variant="update"
                                 disabled={saving}
-                                className={
+                                aria-label={
                                     caseData
-                                        ? "!bg-amber-500 hover:!bg-amber-600"
-                                        : ""
+                                        ? "Update the case history"
+                                        : "Save the case history"
                                 }
+                                className="w-full sm:w-auto"
                             >
-                                <Save size={16} className="mr-1.5" />
+                                <Save size={16} />
                                 {caseData ? "Update" : "Save"}
                             </Button>
                         </div>
@@ -408,9 +413,18 @@ export default function CaseFormModal({
                             type="button"
                             disabled={saving}
                             onClick={(e: any) => save(e, true)}
+                            aria-label="Save the case history and open the prescription for printing"
+                            aria-busy={saving}
+                            className="w-full sm:w-auto"
                         >
-                            <Printer size={16} className="mr-1.5" />
-                            Save &amp; Generate Prescription
+                            {saving ? (
+                                <Loader2 size={16} className="animate-spin" />
+                            ) : (
+                                <Printer size={16} />
+                            )}
+                            {saving
+                                ? "Saving..."
+                                : "Save & Generate Prescription"}
                         </Button>
                     </div>
                 </div>
