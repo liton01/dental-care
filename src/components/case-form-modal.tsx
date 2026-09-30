@@ -390,7 +390,15 @@ export default function CaseFormModal({
                                 Cancel
                             </Button>
 
-                            <Button type="submit" disabled={saving}>
+                            <Button
+                                type="submit"
+                                disabled={saving}
+                                className={
+                                    caseData
+                                        ? "!bg-amber-500 hover:!bg-amber-600"
+                                        : ""
+                                }
+                            >
                                 <Save size={16} className="mr-1.5" />
                                 {caseData ? "Update" : "Save"}
                             </Button>
