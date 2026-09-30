@@ -51,7 +51,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
         </View>
         <View style={styles.row2}>
           <Text>Phone: {c.patient.phone}{c.patient.age ? `   Age: ${c.patient.age}` : ""}{c.patient.gender ? `   ${c.patient.gender.charAt(0)}${c.patient.gender.slice(1).toLowerCase()}` : ""}</Text>
-          <Text>Case: Case-{String(c.caseNo).padStart(2, "0")}{c.toothNumber ? `   Tooth: ${c.toothNumber}` : ""}</Text>
+          <Text>Case: Case-{String(c.caseNo).padStart(2, "0")}{c.toothNumber ? `   Tooth: ${c.toothNumber}` : ""}{c.bp ? `   B/P: ${c.bp}` : ""}</Text>
         </View>
 
         <Text style={styles.section}>Problem / Diagnosis</Text>

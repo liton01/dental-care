@@ -58,7 +58,7 @@ export async function POST(req: Request) {
   // auto-generate the next case number for this patient
   const last = await db.caseHistory.findFirst({ where: { patientId }, orderBy: { caseNo: "desc" } });
   const caseNo = (last?.caseNo || 0) + 1;
-  const c = await db.caseHistory.create({ data: { patientId, caseNo, toothNumber: b.toothNumber || null, problem: b.problem || null, treatment: b.treatment || null, details: b.details || null, caseDate: b.caseDate ? new Date(b.caseDate) : new Date(), status: b.status || "IN_PROGRESS" } });
+  const c = await db.caseHistory.create({ data: { patientId, caseNo, toothNumber: b.toothNumber || null, bp: b.bp || null, problem: b.problem || null, treatment: b.treatment || null, details: b.details || null, caseDate: b.caseDate ? new Date(b.caseDate) : new Date(), status: b.status || "IN_PROGRESS" } });
   await syncPrescription(c.id, patientId, b.problem || null, b.medicines);
   return ok(c, 201);
 }

@@ -16,6 +16,7 @@ const emptyMed = { medicineId: "", dosage: "", duration: "", instructions: "" };
 const empty = {
     patientId: "",
     toothNumber: "",
+    bp: "",
     problem: "",
     treatment: "",
     details: "",
@@ -59,6 +60,7 @@ export default function CaseFormModal({
             setF({
                 patientId: String(caseData.patientId),
                 toothNumber: caseData.toothNumber || "",
+                bp: caseData.bp || "",
                 problem: caseData.problem || "",
                 treatment: caseData.treatment || "",
                 details: caseData.details || "",
@@ -211,6 +213,16 @@ export default function CaseFormModal({
                         onChange={(e) =>
                             setF({ ...f, toothNumber: e.target.value })
                         }
+                    />
+                </div>
+
+                <div>
+                    <Label>B/P</Label>
+
+                    <Input
+                        value={f.bp}
+                        onChange={(e) => setF({ ...f, bp: e.target.value })}
+                        placeholder="e.g. 120/80"
                     />
                 </div>
 

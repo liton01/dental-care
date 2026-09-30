@@ -82,6 +82,7 @@ model CaseHistory {
   patientId      Int
   caseNo         Int
   toothNumber    String?
+  bp             String?         @db.VarChar(20)
   problem        String?
   treatment      String?
   details        String?

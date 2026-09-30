@@ -139,6 +139,11 @@ export default function PatientCaseHistory() {
 
                             <p className="mt-2 text-sm">
                                 <b>Tooth:</b> {c.toothNumber || "—"}
+                                {c.bp ? (
+                                    <span className="ml-3">
+                                        <b>B/P:</b> {c.bp}
+                                    </span>
+                                ) : null}
                             </p>
 
                             <p className="text-sm">
