@@ -351,11 +351,11 @@ export default function CaseFormModal({
                     />
                 </div>
 
-                <div className="flex flex-col gap-3 border-t pt-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
+                <div className="flex flex-col gap-3 border-t pt-3 sm:col-span-2">
+                    <div className="flex items-center gap-4">
                         <Label>Status</Label>
 
-                        <div className="flex items-center gap-5 pt-1">
+                        <div className="flex items-center gap-5">
                             {[
                                 ["IN_PROGRESS", "In Progress"],
                                 ["CLOSED", "Closed"],
@@ -379,20 +379,22 @@ export default function CaseFormModal({
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap justify-end gap-2">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={onClose}
-                        >
-                            <X size={16} className="mr-1.5" />
-                            Cancel
-                        </Button>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex gap-2">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={onClose}
+                            >
+                                <X size={16} className="mr-1.5" />
+                                Cancel
+                            </Button>
 
-                        <Button type="submit" disabled={saving}>
-                            <Save size={16} className="mr-1.5" />
-                            {caseData ? "Update" : "Save"}
-                        </Button>
+                            <Button type="submit" disabled={saving}>
+                                <Save size={16} className="mr-1.5" />
+                                {caseData ? "Update" : "Save"}
+                            </Button>
+                        </div>
 
                         <Button
                             type="button"
