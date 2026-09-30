@@ -12,8 +12,8 @@ import { Document, Page, Text, View, StyleSheet, Svg, Path } from "@react-pdf/re
 // ============================================================
 const POS = {
   name:    { x: 22,  y: 42.5 },   // after "Name:"
-  sexM:    { x: 115.5, y: 42 },   // tick over the M box
-  sexF:    { x: 124, y: 42 },   // tick over the F box
+  sexM:    { x: 115.5, y: 41.75 },   // tick over the M box
+  sexF:    { x: 124, y: 41.75 },   // tick over the F box
   age:     { x: 147, y: 42.2 },   // after "Age:"
   date:    { x: 172, y: 42.2 },   // after "Date:"
   cc:      { x: 16,  y: 60, w: 58 },  // C/C block (problem)
