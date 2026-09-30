@@ -11,11 +11,11 @@ import { Document, Page, Text, View, StyleSheet, Svg, Path } from "@react-pdf/re
 // adjust the numbers below (bigger y = lower, bigger x = right).
 // ============================================================
 const POS = {
-  name:    { x: 22,  y: 43.5 },   // after "Name:"
-  sexM:    { x: 115.5, y: 43 },   // tick over the M box
-  sexF:    { x: 124, y: 43 },   // tick over the F box
-  age:     { x: 147, y: 43.5 },   // after "Age:"
-  date:    { x: 172, y: 43.5 },   // after "Date:"
+  name:    { x: 22,  y: 42.5 },   // after "Name:"
+  sexM:    { x: 115.5, y: 42 },   // tick over the M box
+  sexF:    { x: 124, y: 42 },   // tick over the F box
+  age:     { x: 147, y: 42.2 },   // after "Age:"
+  date:    { x: 172, y: 42.2 },   // after "Date:"
   cc:      { x: 16,  y: 60, w: 58 },  // C/C block (problem)
   bp:      { x: 26,  y: 140 },  // after "B/P:"
   adv:     { x: 16,  y: 205, w: 58 }, // ADV: block (remarks)
