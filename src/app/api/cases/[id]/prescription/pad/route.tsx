@@ -11,14 +11,14 @@ import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 // adjust the numbers below (bigger y = lower, bigger x = right).
 // ============================================================
 const POS = {
-  name:    { x: 22,  y: 41 },   // after "Name:"
-  sexM:    { x: 128, y: 41 },   // tick over the M box
-  sexF:    { x: 139, y: 41 },   // tick over the F box
-  age:     { x: 165, y: 41 },   // after "Age:"
+  name:    { x: 22,  y: 44 },   // after "Name:"
+  sexM:    { x: 113, y: 41 },   // tick over the M box
+  sexF:    { x: 124, y: 41 },   // tick over the F box
+  age:     { x: 152, y: 41 },   // after "Age:"
   date:    { x: 172, y: 41 },   // after "Date:"
   cc:      { x: 16,  y: 60, w: 58 },  // C/C block (problem)
-  bp:      { x: 26,  y: 130 },  // after "B/P:"
-  adv:     { x: 16,  y: 190, w: 58 }, // ADV: block (remarks)
+  bp:      { x: 26,  y: 140 },  // after "B/P:"
+  adv:     { x: 16,  y: 205, w: 58 }, // ADV: block (remarks)
   rx:      { x: 82,  y: 58, w: 115 }, // Rx column (medicines)
 };
 
