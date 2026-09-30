@@ -17,6 +17,7 @@ const POS = {
   age:     { x: 147, y: 42.2 },   // after "Age:"
   date:    { x: 172, y: 42.2 },   // after "Date:"
   cc:      { x: 16,  y: 60, w: 58 },  // C/C block (problem)
+  oe:      { x: 16,  y: 87, w: 58 },  // O/E block
   bp:      { x: 13,  y: 140 },  // after "B/P:"
   adv:     { x: 6,   y: 205, w: 60 }, // ADV: block (remarks)
   rx:      { x: 82,  y: 58, w: 115 }, // Rx column (medicines)
@@ -96,6 +97,12 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
         {c.problem ? (
           <At x={POS.cc.x} y={POS.cc.y} w={POS.cc.w}>
             <Text>{c.problem}</Text>
+          </At>
+        ) : null}
+
+        {c.oe ? (
+          <At x={POS.oe.x} y={POS.oe.y} w={POS.oe.w}>
+            <Text>{c.oe}</Text>
           </At>
         ) : null}
 

@@ -17,6 +17,8 @@ const empty = {
     patientId: "",
     toothNumber: "",
     bp: "",
+    oe: "",
+    followUpDate: "",
     problem: "",
     treatment: "",
     details: "",
@@ -61,6 +63,8 @@ export default function CaseFormModal({
                 patientId: String(caseData.patientId),
                 toothNumber: caseData.toothNumber || "",
                 bp: caseData.bp || "",
+                oe: caseData.oe || "",
+                followUpDate: caseData.followUpDate?.slice(0, 10) || "",
                 problem: caseData.problem || "",
                 treatment: caseData.treatment || "",
                 details: caseData.details || "",
@@ -146,6 +150,7 @@ export default function CaseFormModal({
 
     return (
         <Modal
+            wide
             open={open}
             title={
                 caseData
@@ -223,6 +228,35 @@ export default function CaseFormModal({
                         value={f.bp}
                         onChange={(e) => setF({ ...f, bp: e.target.value })}
                         placeholder="e.g. 120/80"
+                    />
+                </div>
+
+                <div>
+                    <Label>O/E</Label>
+
+                    <Input
+                        value={f.oe}
+                        onChange={(e) => setF({ ...f, oe: e.target.value })}
+                        placeholder="On examination findings"
+                    />
+                </div>
+
+                <div>
+                    <Label>Follow-up Day</Label>
+
+                    <DatePicker
+                        selected={
+                            f.followUpDate ? new Date(f.followUpDate) : null
+                        }
+                        onChange={(d: Date | null) =>
+                            setF({ ...f, followUpDate: d ? toYMD(d) : "" })
+                        }
+                        dateFormat="dd/MM/yyyy"
+                        placeholderText="dd/mm/yyyy"
+                        className="input"
+                        wrapperClassName="w-full"
+                        minDate={new Date()}
+                        isClearable
                     />
                 </div>
 
