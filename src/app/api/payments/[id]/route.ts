@@ -13,6 +13,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (!b?.patientId || b.amount === undefined) return bad("Patient and amount are required.");
   const lockV = await db.accVoucher.findUnique({ where: { paymentId: Number(params.id) } });
   if (lockV) return bad(`Locked: journal voucher ${lockV.voucherNo} exists for this transaction. Delete the voucher first.`);
+  try {
   const updated = await db.payment.update({ where: { id: Number(params.id) }, data: {
     patientId: Number(b.patientId), description: b.description || null,
     amount: Number(b.amount), discount: Number(b.discount || 0),
@@ -25,6 +26,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     caseHistoryId: b.caseHistoryId ? Number(b.caseHistoryId) : null,
   }, include: { patient: true, caseHistory: true } });
   return ok(updated);
+  } catch (e: any) {
+    console.error("Payment update failed:", e);
+    return bad("Update failed: " + (e?.message?.split("\n").pop()?.trim() || "unknown error"), 500);
+  }
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {

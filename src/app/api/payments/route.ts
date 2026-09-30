@@ -26,6 +26,11 @@ export async function POST(req: Request) {
   const session = await requireSession();
   if (!session) return bad("Unauthorized", 401);
   const b = await parseBody(req); if (!b?.patientId || b.amount === undefined) return bad("Patient and amount are required.");
+  try {
   const created = await await db.payment.create({ data: { patientId: Number(b.patientId), description: b.description || null, amount: Number(b.amount), discount: Number(b.discount || 0), paidAmount: Number(b.paidAmount ?? b.amount), type: b.type || "PAYMENT", method: b.method || "CASH", paymentDate: b.paymentDate ? new Date(b.paymentDate) : new Date(), walletProvider: b.method === "MOBILE_BANKING" ? b.walletProvider || null : null, walletNumber: b.method === "MOBILE_BANKING" ? b.walletNumber || null : null, walletTrxId: b.method === "MOBILE_BANKING" ? b.walletTrxId || null : null, caseHistoryId: b.caseHistoryId ? Number(b.caseHistoryId) : null }, include: { patient: true, caseHistory: true } });
   return ok(created, 201);
+  } catch (e: any) {
+    console.error("Payment create failed:", e);
+    return bad("Save failed: " + (e?.message?.split("\n").pop()?.trim() || "unknown error"), 500);
+  }
 }
