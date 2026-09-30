@@ -12,7 +12,7 @@ import { Document, Page, Text, View, StyleSheet, Svg, Path } from "@react-pdf/re
 // ============================================================
 const POS = {
   name:    { x: 22,  y: 41.5 },   // after "Name:"
-  sexM:    { x: 113, y: 41 },   // tick over the M box
+  sexM:    { x: 115.5, y: 41 },   // tick over the M box
   sexF:    { x: 124, y: 41 },   // tick over the F box
   age:     { x: 147, y: 41 },   // after "Age:"
   date:    { x: 172, y: 41 },   // after "Date:"
