@@ -2,7 +2,7 @@ import { db } from "@/lib/prisma";
 import { bad, requireSession } from "@/lib/api";
 import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Svg, Path } from "@react-pdf/renderer";
 
 // ============================================================
 // PAD MODE: prints ONLY the values onto the pre-printed A4 pad.
@@ -11,7 +11,7 @@ import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 // adjust the numbers below (bigger y = lower, bigger x = right).
 // ============================================================
 const POS = {
-  name:    { x: 22,  y: 44 },   // after "Name:"
+  name:    { x: 22,  y: 41.5 },   // after "Name:"
   sexM:    { x: 113, y: 41 },   // tick over the M box
   sexF:    { x: 124, y: 41 },   // tick over the F box
   age:     { x: 152, y: 41 },   // after "Age:"
@@ -36,6 +36,14 @@ const fmt = (d: Date) => {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
 };
+
+function Tick() {
+  return (
+    <Svg width={10} height={10} viewBox="0 0 10 10">
+      <Path d="M1.5 5.5 L4 8 L8.5 1.5" stroke="#000" strokeWidth={1.6} fill="none" />
+    </Svg>
+  );
+}
 
 function At({ x, y, w, children }: { x: number; y: number; w?: number; children: React.ReactNode }) {
   return (
@@ -66,12 +74,12 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 
         {c.patient.gender === "MALE" && (
           <At x={POS.sexM.x} y={POS.sexM.y}>
-            <Text>X</Text>
+            <Tick />
           </At>
         )}
         {c.patient.gender === "FEMALE" && (
           <At x={POS.sexF.x} y={POS.sexF.y}>
-            <Text>X</Text>
+            <Tick />
           </At>
         )}
 
