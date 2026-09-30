@@ -14,7 +14,7 @@ const POS = {
   name:    { x: 22,  y: 41.5 },   // after "Name:"
   sexM:    { x: 113, y: 41 },   // tick over the M box
   sexF:    { x: 124, y: 41 },   // tick over the F box
-  age:     { x: 152, y: 41 },   // after "Age:"
+  age:     { x: 147, y: 41 },   // after "Age:"
   date:    { x: 172, y: 41 },   // after "Date:"
   cc:      { x: 16,  y: 60, w: 58 },  // C/C block (problem)
   bp:      { x: 26,  y: 140 },  // after "B/P:"
