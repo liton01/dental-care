@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Sidebar from "./sidebar";
 import Topbar from "./topbar";
+import Footer from "./footer";
 
 export default function LayoutShell({
     children,
@@ -60,8 +61,10 @@ export default function LayoutShell({
                     collapsed ? "" : "lg:ml-64"
                 }`}
             >
-                <div className="p-4 md:p-6">
-                    {children}
+                <div className="flex min-h-[calc(100vh-4rem)] flex-col p-4 md:p-6">
+                    <div className="flex-1">{children}</div>
+
+                    <Footer />
                 </div>
             </main>
         </>

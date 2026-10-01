@@ -94,7 +94,8 @@ export default function Login() {
                 </form>
 
                 <p className="mt-5 text-center text-xs text-slate-400">
-                    Demo: admin@mohonto.com / Admin@123
+                    © {new Date().getFullYear()} ThinkTach. All Rights
+                    Reserved. | Powered by ThinkTach
                 </p>
             </Card>
         </div>
