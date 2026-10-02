@@ -1,30 +1,28 @@
 import { db } from "@/lib/prisma";
 import { bad, ok, requireSession } from "@/lib/api";
+import { followUpWhere } from "@/lib/follow-ups";
 
-// Upcoming follow-ups: cases that have a next follow-up date set.
 export async function GET(req: Request) {
   if (!await requireSession()) return bad("Unauthorized", 401);
   const sp = new URL(req.url).searchParams;
-  const patientId = Number(sp.get("patientId") || 0);
-  const dateFrom = sp.get("dateFrom")?.trim() || "";
-  const dateTo = sp.get("dateTo")?.trim() || "";
-  const includePast = sp.get("includePast") === "1";
-
-  const where: any = { followUpDate: { not: null } };
-  if (patientId) where.patientId = patientId;
-  if (dateFrom || dateTo || !includePast) {
-    where.followUpDate = { not: null };
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (dateFrom) where.followUpDate.gte = new Date(dateFrom);
-    else if (!includePast) where.followUpDate.gte = today;
-    if (dateTo) where.followUpDate.lte = new Date(dateTo + "T23:59:59.999");
-  }
-
-  const rows = await db.caseHistory.findMany({
-    where,
-    include: { patient: true },
-    orderBy: { followUpDate: "asc" },
+  const where = followUpWhere({
+    patientId: sp.get("patientId"),
+    dateFrom: sp.get("dateFrom")?.trim(),
+    dateTo: sp.get("dateTo")?.trim(),
+    includePast: sp.get("includePast") === "1",
+    smsStatus: sp.get("smsStatus"),
   });
-  return ok(rows);
+  const page = Math.max(1, Number(sp.get("page")) || 1);
+  const pageSize = Math.min(500, Math.max(1, Number(sp.get("pageSize")) || 200));
+  const [items, total] = await Promise.all([
+    db.caseHistory.findMany({
+      where,
+      include: { patient: true },
+      orderBy: [{ followUpDate: "asc" }, { id: "asc" }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    db.caseHistory.count({ where }),
+  ]);
+  return ok({ items, total, page, pageSize });
 }

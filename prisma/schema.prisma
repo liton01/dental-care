@@ -85,6 +85,7 @@ model CaseHistory {
   bp             String?         @db.VarChar(20)
   oe             String?         @db.VarChar(300)
   followUpDate   DateTime?
+  followUpSmsSentAt DateTime?
   problem        String?
   treatment      String?
   details        String?

@@ -27,7 +27,12 @@ async function syncPrescription(caseId: number, patientId: number, diagnosis: st
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   if (!await requireSession()) return bad("Unauthorized", 401);
   const b = await parseBody(req);
-  const c = await db.caseHistory.update({ where: { id: Number(params.id) }, data: { toothNumber: b.toothNumber, bp: b.bp || null, oe: b.oe || null, followUpDate: b.followUpDate ? new Date(b.followUpDate) : null, problem: b.problem, treatment: b.treatment, details: b.details, status: b.status, caseDate: b.caseDate ? new Date(b.caseDate) : undefined } });
+  const before = await db.caseHistory.findUnique({ where: { id: Number(params.id) }, select: { followUpDate: true } });
+  const newFollow = b.followUpDate ? new Date(b.followUpDate).toISOString().slice(0, 10) : null;
+  const oldFollow = before?.followUpDate ? before.followUpDate.toISOString().slice(0, 10) : null;
+  const resetSms = newFollow !== oldFollow ? { followUpSmsSentAt: null } : {};
+  const c = await db.caseHistory.update({ where: { id: Number(params.id) }, data: {
+    ...resetSms, toothNumber: b.toothNumber, bp: b.bp || null, oe: b.oe || null, followUpDate: b.followUpDate ? new Date(b.followUpDate) : null, problem: b.problem, treatment: b.treatment, details: b.details, status: b.status, caseDate: b.caseDate ? new Date(b.caseDate) : undefined } });
   if (Array.isArray(b.medicines)) await syncPrescription(c.id, c.patientId, b.problem || null, b.medicines);
   return ok(c);
 }
