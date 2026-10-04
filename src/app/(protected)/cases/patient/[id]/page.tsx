@@ -30,7 +30,10 @@ export default function PatientCaseHistory() {
     const load = () =>
         fetch(`/api/cases?patientId=${id}`)
             .then((r) => r.json())
-            .then(setItems);
+            .then((d) => {
+                if (d?.error) toast.error(d.error, { duration: 8000 });
+                setItems(Array.isArray(d) ? d : []);
+            });
 
     useEffect(() => {
         fetch(`/api/patients/${id}`)

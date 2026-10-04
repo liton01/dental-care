@@ -4,6 +4,15 @@ import { followUpWhere } from "@/lib/follow-ups";
 
 export async function GET(req: Request) {
   if (!await requireSession()) return bad("Unauthorized", 401);
+  try {
+    return await listFollowUps(req);
+  } catch (e: any) {
+    console.error("Follow-up list failed:", e);
+    return bad("Could not load follow-ups: " + (e?.message?.split("\n").filter(Boolean).pop()?.trim() || "unknown error") + " (run: npx prisma db push && npx prisma generate)", 500);
+  }
+}
+
+async function listFollowUps(req: Request) {
   const sp = new URL(req.url).searchParams;
   const where = followUpWhere({
     patientId: sp.get("patientId"),

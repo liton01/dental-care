@@ -2,6 +2,15 @@ import { db } from "@/lib/prisma";
 import { bad, ok, parseBody, requireSession } from "@/lib/api";
 export async function GET(req: Request) {
   if (!await requireSession()) return bad("Unauthorized", 401);
+  try {
+    return await listCases(req);
+  } catch (e: any) {
+    console.error("Case list failed:", e);
+    return bad("Could not load cases: " + (e?.message?.split("\n").filter(Boolean).pop()?.trim() || "unknown error") + " (run: npx prisma db push && npx prisma generate)", 500);
+  }
+}
+
+async function listCases(req: Request) {
   const { searchParams } = new URL(req.url), patientId = Number(searchParams.get("patientId") || 0);
   const q = searchParams.get("q")?.trim() ?? "";
   const where: any = {};

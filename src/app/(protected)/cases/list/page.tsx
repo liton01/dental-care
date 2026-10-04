@@ -59,6 +59,7 @@ export default function CaseHistoryList() {
         fetch("/api/cases?" + params.toString())
             .then((r) => r.json())
             .then((d) => {
+                if (d?.error) toast.error(d.error, { duration: 8000 });
                 setItems(d.items || []);
                 setTotal(d.total || 0);
             });
