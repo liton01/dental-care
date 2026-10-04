@@ -100,7 +100,7 @@ export default function Sidebar({
                     px-6
                 "
             >
-                <div>
+                <Link href="/dashboard" className="block rounded-lg hover:opacity-80" title="Go to dashboard">
                     <div className="font-bold text-teal-700">
                         {org?.nameEn || "Mohonto Dental Care"}
                     </div>
@@ -108,7 +108,7 @@ export default function Sidebar({
                     <div className="text-xs text-slate-500">
                         {org?.slogan || "Clinic Management"}
                     </div>
-                </div>
+                </Link>
             </div>
 
             {/* =====================================================

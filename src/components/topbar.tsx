@@ -42,7 +42,7 @@ export default function Topbar({
                     <Menu size={20} />
                 </button>
 
-                <div>
+                <Link href="/dashboard" className="block rounded-lg hover:opacity-80" title="Go to dashboard">
                     <div className="font-semibold">
                         {org?.nameEn || "Mohonto Dental Care"}
                     </div>
@@ -50,7 +50,7 @@ export default function Topbar({
                     <div className="text-xs text-slate-500">
                         {org?.slogan || "Dental Clinic Management System"}
                     </div>
-                </div>
+                </Link>
             </div>
 
             <div className="flex items-center gap-3">

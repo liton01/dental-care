@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Card, Badge } from "@/components/ui";
 import PatientSearch from "@/components/patient-search";
 import PageLoader from "@/components/page-loader";
@@ -38,13 +39,27 @@ export default function Dashboard() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-                {stats.map(([a, b]) => (
-                    <Card key={a as string} className="p-5">
-                        <div className="text-sm text-slate-500">{a}</div>
+                {stats.map(([a, b]) => {
+                    const card = (
+                        <Card className="h-full p-5">
+                            <div className="text-sm text-slate-500">{a}</div>
 
-                        <div className="mt-2 text-2xl font-bold">{b}</div>
-                    </Card>
-                ))}
+                            <div className="mt-2 text-2xl font-bold">{b}</div>
+                        </Card>
+                    );
+                    return a === "Today's Appointments" ? (
+                        <Link
+                            key={a as string}
+                            href="/follow-ups"
+                            className="block transition hover:-translate-y-0.5"
+                            title="Open Next Follow-up list"
+                        >
+                            {card}
+                        </Link>
+                    ) : (
+                        <div key={a as string}>{card}</div>
+                    );
+                })}
             </div>
 
             <Card className="mt-6 p-5">

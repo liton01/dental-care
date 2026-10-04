@@ -7,7 +7,7 @@ export async function GET() {
     db.patient.count({ where: { isActive: true } }),
     db.caseHistory.count(),
     db.prescription.count(),
-    db.appointment.count({ where: { appointmentAt: { gte: start, lt: new Date(start.getTime()+86400000) } } }),
+    db.caseHistory.count({ where: { followUpDate: { gte: start, lt: new Date(start.getTime()+86400000) } } }),
     db.payment.aggregate({ _sum: { paidAmount: true }, where: { paymentDate: { gte: start } } }),
     db.patient.findMany({ take: 8, orderBy: { createdAt: "desc" } })
   ]);
