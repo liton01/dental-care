@@ -229,7 +229,7 @@ export default function BillCollection() {
         if (!confirm(`Delete transaction ${p.invoiceNo}?`)) return;
         const r = await fetch(`/api/payments/${p.id}`, { method: "DELETE" });
         if (r.ok) toast.success("Transaction deleted");
-        else toast.error("Failed to delete transaction.");
+        else toast.error((await r.json().catch(() => null))?.error || "Failed to delete transaction.");
         load();
     };
 

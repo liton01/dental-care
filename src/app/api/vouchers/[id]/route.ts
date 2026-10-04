@@ -47,6 +47,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   if (!await requireSession()) return bad("Unauthorized", 401);
-  await db.accVoucher.delete({ where: { id: Number(params.id) } });
+  const v = await db.accVoucher.findUnique({ where: { id: Number(params.id) } });
+  if (!v) return bad("Voucher not found", 404);
+  if (v.isPosted === "Y") return bad(`Cannot delete: voucher ${v.voucherNo} is posted. Unpost it first.`);
+  // detail lines are owned by the voucher; the linked payment is released (unlocked)
+  await db.accVoucher.delete({ where: { id: v.id } });
   return ok({ deleted: true });
 }

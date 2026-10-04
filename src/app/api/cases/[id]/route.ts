@@ -38,5 +38,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   if (!await requireSession()) return bad("Unauthorized", 401);
-  await db.caseHistory.delete({ where: { id: Number(params.id) } }); return ok({ success: true });
+  const id = Number(params.id);
+  const payments = await db.payment.count({ where: { caseHistoryId: id } });
+  if (payments) {
+    return bad(`Cannot delete: ${payments} bill collection transaction${payments === 1 ? " is" : "s are"} linked to this case. Delete those first.`);
+  }
+  // the case's prescription lines belong to the case itself, so they go with it
+  await db.caseHistory.delete({ where: { id } });
+  return ok({ success: true });
 }

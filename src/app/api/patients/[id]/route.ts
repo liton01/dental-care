@@ -18,5 +18,20 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   if (!await requireSession()) return bad("Unauthorized", 401);
-  await db.patient.delete({ where: { id: Number(params.id) } }); return ok({ success: true });
+  const id = Number(params.id);
+  const [cases, payments, prescriptions, appointments] = await Promise.all([
+    db.caseHistory.count({ where: { patientId: id } }),
+    db.payment.count({ where: { patientId: id } }),
+    db.prescription.count({ where: { patientId: id } }),
+    db.appointment.count({ where: { patientId: id } }),
+  ]);
+  const used = [
+    cases && `${cases} case histor${cases === 1 ? "y" : "ies"}`,
+    payments && `${payments} payment${payments === 1 ? "" : "s"}`,
+    prescriptions && `${prescriptions} prescription${prescriptions === 1 ? "" : "s"}`,
+    appointments && `${appointments} appointment${appointments === 1 ? "" : "s"}`,
+  ].filter(Boolean);
+  if (used.length) return bad(`Cannot delete: this patient has ${used.join(", ")}. Delete those first.`);
+  await db.patient.delete({ where: { id } });
+  return ok({ success: true });
 }

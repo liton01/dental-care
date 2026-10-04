@@ -225,7 +225,7 @@ export default function JournalVouchers() {
         if (!confirm(`Delete voucher ${v.voucherNo}?`)) return;
         const r = await fetch(`/api/vouchers/${v.id}`, { method: "DELETE" });
         if (r.ok) toast.success("Voucher deleted");
-        else toast.error("Failed to delete voucher.");
+        else toast.error((await r.json().catch(() => null))?.error || "Failed to delete voucher.");
         load();
     };
 

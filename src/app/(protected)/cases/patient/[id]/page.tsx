@@ -54,7 +54,7 @@ export default function PatientCaseHistory() {
         if (!confirm(`Delete Case-${String(c.caseNo).padStart(2, "0")}?`)) return;
         const r = await fetch(`/api/cases/${c.id}`, { method: "DELETE" });
         if (r.ok) toast.success("Case deleted");
-        else toast.error("Failed to delete case.");
+        else toast.error((await r.json().catch(() => null))?.error || "Failed to delete case.");
         load();
     };
 

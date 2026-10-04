@@ -2,7 +2,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Textarea, Modal, Pagination } from "@/components/ui";
-import { Plus, Search, X, UserPlus, Save, Pencil, ChevronLeft, ChevronRight, FolderOpen } from "lucide-react";
+import { Plus, Search, X, UserPlus, Save, Pencil, ChevronLeft, ChevronRight, FolderOpen, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import PhotoUpload from "@/components/photo-upload";
@@ -95,6 +95,17 @@ export default function Patients() {
     const [form, setForm] = useState<any>(empty);
     const [editing, setEditing] = useState<number | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
+
+    const removePatient = async (p: any) => {
+        if (!confirm(`Delete patient ${p.name} (${p.patientNo})?`)) return;
+        const r = await fetch(`/api/patients/${p.id}`, { method: "DELETE" });
+        if (r.ok) {
+            toast.success("Patient deleted");
+            load();
+        } else {
+            toast.error((await r.json().catch(() => null))?.error || "Failed to delete patient.", { duration: 6000 });
+        }
+    };
 
     const load = (
         gender = genderFilter,
@@ -446,6 +457,15 @@ export default function Patients() {
                                             aria-label="Edit patient"
                                         >
                                             <Pencil size={16} />
+                                        </button>
+
+                                        <button
+                                            className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"
+                                            onClick={() => removePatient(p)}
+                                            title="Delete patient"
+                                            aria-label="Delete patient"
+                                        >
+                                            <Trash2 size={16} />
                                         </button>
                                     </td>
                                 </tr>
