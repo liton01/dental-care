@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { UserPlus } from "lucide-react";
 import { Card, Badge } from "@/components/ui";
 import PatientSearch from "@/components/patient-search";
 import PageLoader from "@/components/page-loader";
@@ -35,7 +36,17 @@ export default function Dashboard() {
                     </p>
                 </div>
 
-                <PatientSearch className="w-full sm:w-96" />
+                <div className="flex w-full items-center gap-2 sm:w-auto">
+                    <PatientSearch className="w-full sm:w-96" />
+
+                    <Link
+                        href="/patients?new=1"
+                        className="btn btn-primary flex shrink-0 items-center gap-1.5 whitespace-nowrap"
+                    >
+                        <UserPlus size={16} />
+                        New Patient
+                    </Link>
+                </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
