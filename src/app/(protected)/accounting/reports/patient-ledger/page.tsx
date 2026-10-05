@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Card, Label, Button, SearchSelect } from "@/components/ui";
 import { Search, RotateCw, Loader2 } from "lucide-react";
 import DatePicker from "react-datepicker";
+import toast from "react-hot-toast";
 import "react-datepicker/dist/react-datepicker.css";
 
 const toYMD = (d: Date) => {
@@ -18,7 +19,7 @@ const fmtDate = (iso?: string | null) => {
 
 const money = (n: number) => n.toFixed(2);
 
-export default function PatientLedger() {
+export default function SubsidiaryLedger() {
     const [patients, setPatients] = useState<any[]>([]);
     const [accounts, setAccounts] = useState<any[]>([]);
     const [patientId, setPatientId] = useState("");
@@ -47,15 +48,23 @@ export default function PatientLedger() {
     }, []);
 
     const run = async () => {
-        if (!patientId) return;
+        if (!patientId && !accountId) {
+            toast.error("Select a patient or a ledger head.");
+            return;
+        }
         setLoading(true);
-        const params = new URLSearchParams({ patientId });
+        const params = new URLSearchParams();
+        if (patientId) params.set("patientId", patientId);
         if (accountId) params.set("accountId", accountId);
         if (dateFrom) params.set("dateFrom", dateFrom);
         if (dateTo) params.set("dateTo", dateTo);
         if (postedOnly) params.set("postedOnly", "1");
         const r = await fetch("/api/reports/patient-ledger?" + params);
-        setData(r.ok ? await r.json() : null);
+        if (r.ok) setData(await r.json());
+        else {
+            setData(null);
+            toast.error((await r.json().catch(() => null))?.error || "Failed to run report.");
+        }
         setLoading(false);
     };
 
@@ -72,22 +81,22 @@ export default function PatientLedger() {
     return (
         <div>
             <div className="mb-4">
-                <h1 className="text-2xl font-bold">Patient Ledger</h1>
+                <h1 className="text-2xl font-bold">Subsidiary Ledger</h1>
 
                 <p className="text-sm text-slate-500">
-                    Voucher lines of a patient with running balance.
+                    Voucher lines by patient or ledger head with running balance. Select at least one.
                 </p>
             </div>
 
             <Card className="p-5">
                 <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
                     <div className="sm:w-64">
-                        <Label required>Patient</Label>
+                        <Label required={!accountId}>Patient</Label>
 
                         <SearchSelect
                             options={patients.map((p) => ({
                                 value: String(p.id),
-                                label: `${p.name} — ${p.phone}`,
+                                label: `${p.name} (${p.patientNo})`,
                             }))}
                             value={patientId}
                             onChange={setPatientId}
@@ -96,19 +105,16 @@ export default function PatientLedger() {
                     </div>
 
                     <div className="sm:w-64">
-                        <Label>Ledger Head</Label>
+                        <Label required={!patientId}>Ledger Head</Label>
 
                         <SearchSelect
-                            options={[
-                                { value: "", label: "All Heads" },
-                                ...accounts.map((a) => ({
-                                    value: String(a.id),
-                                    label: `${a.mainCode} — ${a.mainName}`,
-                                })),
-                            ]}
+                            options={accounts.map((a) => ({
+                                value: String(a.id),
+                                label: `${a.mainCode} — ${a.mainName}`,
+                            }))}
                             value={accountId}
                             onChange={setAccountId}
-                            placeholder="All Heads"
+                            placeholder="Search ledger head..."
                         />
                     </div>
 
@@ -154,7 +160,7 @@ export default function PatientLedger() {
                         Posted only
                     </label>
 
-                    <Button onClick={run} disabled={!patientId || loading}>
+                    <Button onClick={run} disabled={(!patientId && !accountId) || loading}>
                         {loading ? (
                             <Loader2 size={16} className="mr-1.5 animate-spin" />
                         ) : (
@@ -179,10 +185,18 @@ export default function PatientLedger() {
                     </Button>
                 </div>
 
-                {data?.patient && (
-                    <div className="mb-3 rounded-xl bg-teal-50 p-3 text-sm">
-                        <b>{data.patient.name}</b> · {data.patient.patientNo} ·{" "}
-                        {data.patient.phone}
+                {(data?.patient || data?.head) && (
+                    <div className="mb-3 flex flex-wrap gap-x-6 gap-y-1 rounded-xl bg-teal-50 p-3 text-sm">
+                        {data.patient && (
+                            <span>
+                                Patient: <b>{data.patient.name}</b> ({data.patient.patientNo}) · {data.patient.phone}
+                            </span>
+                        )}
+                        {data.head && (
+                            <span>
+                                Ledger Head: <b>{data.head}</b>
+                            </span>
+                        )}
                     </div>
                 )}
 
@@ -192,6 +206,7 @@ export default function PatientLedger() {
                             <tr className="border-b text-slate-500">
                                 <th className="p-3">Date</th>
                                 <th className="p-3">Voucher</th>
+                                {!data?.patient && <th className="p-3">Patient</th>}
                                 <th className="p-3">Ledger Head</th>
                                 <th className="p-3">Narration</th>
                                 <th className="p-3 text-right">Debit</th>
@@ -216,6 +231,10 @@ export default function PatientLedger() {
                                         )}
                                     </td>
 
+                                    {!data?.patient && (
+                                        <td className="p-3 whitespace-nowrap">{r.patient || "-"}</td>
+                                    )}
+
                                     <td className="p-3">{r.account}</td>
 
                                     <td className="p-3 max-w-[240px] truncate" title={r.narration}>
@@ -238,7 +257,7 @@ export default function PatientLedger() {
 
                             {rows.length > 0 && (
                                 <tr className="font-semibold">
-                                    <td className="p-3" colSpan={4}>
+                                    <td className="p-3" colSpan={data?.patient ? 4 : 5}>
                                         Total
                                     </td>
                                     <td className="p-3 text-right">৳ {money(totDr)}</td>
@@ -249,7 +268,7 @@ export default function PatientLedger() {
 
                             {data && rows.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-slate-500">
+                                    <td colSpan={8} className="p-8 text-center text-slate-500">
                                         No entries found for this filter
                                     </td>
                                 </tr>
@@ -257,8 +276,8 @@ export default function PatientLedger() {
 
                             {!data && (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-slate-500">
-                                        Pick a patient and press Run Report
+                                    <td colSpan={8} className="p-8 text-center text-slate-500">
+                                        Pick a patient or a ledger head and press Run Report
                                     </td>
                                 </tr>
                             )}

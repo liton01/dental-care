@@ -23,7 +23,7 @@ const accountingGroups: [string, [string, string][]][] = [
         ["Journal Vouchers", "/accounting/vouchers"],
     ]],
     ["Report", [
-        ["Patient Ledger", "/accounting/reports/patient-ledger"],
+        ["Subsidiary Ledger", "/accounting/reports/patient-ledger"],
         ["Trial Balance", "/accounting/reports/trial-balance"],
         ["Balance Sheet", "/accounting/reports/balance-sheet"],
     ]],

@@ -1,19 +1,19 @@
 import { db } from "@/lib/prisma";
 import { bad, ok, requireSession } from "@/lib/api";
 
-// Patient ledger: voucher lines of the patient's transactions,
-// filterable by ledger head (main class) and date range.
+// Subsidiary ledger: voucher lines filtered by patient and/or ledger head
+// (main class), plus date range. At least one of patient or head is required.
 export async function GET(req: Request) {
   if (!await requireSession()) return bad("Unauthorized", 401);
   const sp = new URL(req.url).searchParams;
   const patientId = Number(sp.get("patientId") || 0);
-  if (!patientId) return bad("Patient is required.");
   const accountId = Number(sp.get("accountId") || 0);
+  if (!patientId && !accountId) return bad("Select a patient or a ledger head.");
   const dateFrom = sp.get("dateFrom")?.trim() || "";
   const dateTo = sp.get("dateTo")?.trim() || "";
   const postedOnly = sp.get("postedOnly") === "1";
 
-  const where: any = { voucher: { is: { payment: { is: { patientId } } } } };
+  const where: any = { voucher: { is: patientId ? { payment: { is: { patientId } } } : {} } };
   if (accountId) where.accMainClassId = accountId;
   if (postedOnly) where.voucher.is.isPosted = "Y";
   if (dateFrom || dateTo) {
@@ -31,11 +31,14 @@ export async function GET(req: Request) {
     orderBy: [{ voucher: { voucherDate: "asc" } }, { id: "asc" }],
   });
 
-  const patient = await db.patient.findUnique({ where: { id: patientId } });
+  const patient = patientId ? await db.patient.findUnique({ where: { id: patientId } }) : null;
+  const head = accountId ? await db.accMainClass.findUnique({ where: { id: accountId } }) : null;
 
   return ok({
     patient: patient ? { id: patient.id, name: patient.name, patientNo: patient.patientNo, phone: patient.phone } : null,
+    head: head ? `${head.mainCode} — ${head.mainName}` : null,
     rows: rows.map((d: any) => ({
+      patient: d.voucher.payment?.patient ? `${d.voucher.payment.patient.name} (${d.voucher.payment.patient.patientNo})` : "",
       date: d.voucher.voucherDate,
       voucherNo: d.voucher.voucherNo,
       isPosted: d.voucher.isPosted,
