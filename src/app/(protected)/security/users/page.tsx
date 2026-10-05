@@ -18,8 +18,6 @@ const empty = {
 export default function Security() {
     const [users, setUsers] = useState<any[]>([]);
     const [roles, setRoles] = useState<any[]>([]);
-    const [permissions, setPermissions] = useState<any[]>([]);
-    const [menus, setMenus] = useState<any[]>([]);
     const [q, setQ] = useState("");
 
     const [modalOpen, setModalOpen] = useState(false);
@@ -35,14 +33,6 @@ export default function Security() {
         fetch("/api/security/roles")
             .then((r) => r.json())
             .then((d) => setRoles(Array.isArray(d) ? d : []));
-
-        fetch("/api/security/permissions")
-            .then((r) => r.json())
-            .then((d) => setPermissions(Array.isArray(d) ? d : []));
-
-        fetch("/api/security/menus")
-            .then((r) => r.json())
-            .then((d) => setMenus(Array.isArray(d) ? d : []));
     };
 
     useEffect(() => {
@@ -119,9 +109,9 @@ export default function Security() {
 
     return (
         <div>
-            <h1 className="mb-6 text-2xl font-bold">Security</h1>
+            <h1 className="mb-6 text-2xl font-bold">Users</h1>
 
-            <div className="grid gap-6 xl:grid-cols-[3fr_2fr]">
+            <div>
                 {/* Users */}
                 <Card className="p-5">
                     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -226,41 +216,6 @@ export default function Security() {
                     </div>
                 </Card>
 
-                {/* Roles & Permissions */}
-                <Card className="p-5">
-                    <h2 className="font-semibold">Roles & Permissions</h2>
-
-                    <div className="mt-4 grid gap-2">
-                        {roles.map((r) => (
-                            <div key={r.id} className="rounded-xl border p-3">
-                                <b>{r.name}</b>
-                                <div className="mt-1 text-xs text-slate-500">
-                                    {r.permissions?.length ?? 0} role permissions
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <h2 className="mt-6 font-semibold">Menus</h2>
-
-                    <div className="mt-3 space-y-2">
-                        {menus.map((m) => (
-                            <div key={m.id} className="rounded-lg bg-slate-50 p-2 text-sm">
-                                {m.title} <span className="text-slate-400">{m.path}</span>
-                            </div>
-                        ))}
-                    </div>
-
-                    <h2 className="mt-6 font-semibold">Permission Catalog</h2>
-
-                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                        {permissions.map((p) => (
-                            <div key={p.id} className="rounded-lg border p-2">
-                                {p.code}
-                            </div>
-                        ))}
-                    </div>
-                </Card>
             </div>
 
             <Modal
