@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, UserPlus, Loader2 } from "lucide-react";
+import { useCan } from "./permissions-context";
 
 // Server-side patient autocomplete. Picking a patient opens their case
 // history; no match offers registering them as a new patient.
@@ -13,6 +14,7 @@ export default function PatientSearch({
     className?: string;
 }) {
     const router = useRouter();
+    const can = useCan();
     const [q, setQ] = useState("");
     const [items, setItems] = useState<any[]>([]);
     const [open, setOpen] = useState(false);
@@ -71,7 +73,7 @@ export default function PatientSearch({
         router.push(`/patients?new=1&name=${encodeURIComponent(name)}`);
     };
 
-    const showNew = !loading && q.trim() !== "";
+    const showNew = !loading && q.trim() !== "" && can("PATIENT.C");
 
     const onKey = (e: React.KeyboardEvent) => {
         if (!open) return;

@@ -1,3 +1,4 @@
+import { denyUnless } from "@/lib/permissions";
 import { db } from "@/lib/prisma";
 import { bad, ok, parseBody, requireSession } from "@/lib/api";
 export async function GET(req: Request) {
@@ -61,7 +62,7 @@ async function syncPrescription(caseId: number, patientId: number, diagnosis: st
 }
 
 export async function POST(req: Request) {
-  if (!await requireSession()) return bad("Unauthorized", 401);
+  { const denied = await denyUnless("CASE.C"); if (denied) return denied; }
   const b = await parseBody(req); if (!b?.patientId) return bad("Patient is required.");
   const patientId = Number(b.patientId);
   // auto-generate the next case number for this patient

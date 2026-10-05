@@ -1,3 +1,4 @@
+import { denyUnless } from "@/lib/permissions";
 import { db } from "@/lib/prisma";
 import { bad, ok, parseBody, requireSession } from "@/lib/api";
 export async function GET(_: Request, { params }: { params: { id: string } }) {
@@ -25,7 +26,7 @@ async function syncPrescription(caseId: number, patientId: number, diagnosis: st
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  if (!await requireSession()) return bad("Unauthorized", 401);
+  { const denied = await denyUnless("CASE.E"); if (denied) return denied; }
   const b = await parseBody(req);
   const before = await db.caseHistory.findUnique({ where: { id: Number(params.id) }, select: { followUpDate: true } });
   const newFollow = b.followUpDate ? new Date(b.followUpDate).toISOString().slice(0, 10) : null;
@@ -37,7 +38,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   return ok(c);
 }
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
-  if (!await requireSession()) return bad("Unauthorized", 401);
+  { const denied = await denyUnless("CASE.E"); if (denied) return denied; }
   const id = Number(params.id);
   const payments = await db.payment.count({ where: { caseHistoryId: id } });
   if (payments) {

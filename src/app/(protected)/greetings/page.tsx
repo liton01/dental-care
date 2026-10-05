@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Textarea, SearchSelect } from "@/components/ui";
 import { Send, Save } from "lucide-react";
 import toast from "react-hot-toast";
+import { useCan } from "@/components/permissions-context";
 
 const TABS = ["Send Greeting", "Template Management"] as const;
 
 export default function Greetings() {
+    const can = useCan();
     const [tab, setTab] = useState<(typeof TABS)[number]>("Send Greeting");
     const [templates, setTemplates] = useState<any[]>([]);
     const [patients, setPatients] = useState<any[]>([]);
@@ -137,10 +139,12 @@ export default function Greetings() {
                             </select>
                         </div>
 
-                        <Button className="w-full" onClick={doSend}>
-                            <Send size={16} className="mr-1.5" />
-                            Send Message
-                        </Button>
+                        {can("GREETING.C") && (
+                            <Button className="w-full" onClick={doSend}>
+                                <Send size={16} className="mr-1.5" />
+                                Send Message
+                            </Button>
+                        )}
                     </div>
                 </Card>
             )}

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Card, Input, Label, Button, Modal, SearchSelect, Pagination } from "@/components/ui";
 import { Plus, X, Save, Pencil, Trash2, RotateCw, FileCheck2, Smartphone } from "lucide-react";
 import toast from "react-hot-toast";
+import { useCan } from "@/components/permissions-context";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -38,6 +39,7 @@ const empty = {
 };
 
 export default function BillCollection() {
+    const can = useCan();
     const [patients, setPatients] = useState<any[]>([]);
     const [items, setItems] = useState<any[]>([]);
     const [f, setF] = useState<any>(empty);
@@ -284,10 +286,12 @@ export default function BillCollection() {
                     </p>
                 </div>
 
-                <Button onClick={openNew}>
-                    <Plus size={16} className="mr-1.5" />
-                    New Transaction
-                </Button>
+                {can("PAYMENT.C") && (
+                    <Button onClick={openNew}>
+                        <Plus size={16} className="mr-1.5" />
+                        New Transaction
+                    </Button>
+                )}
             </div>
 
             <Card className="p-5">

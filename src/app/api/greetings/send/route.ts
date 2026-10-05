@@ -1,3 +1,4 @@
+import { denyUnless } from "@/lib/permissions";
 import { db } from "@/lib/prisma";
 import { bad, ok, parseBody, requireSession } from "@/lib/api";
 import { sendEmail, sendSms, sendWhatsApp } from "@/lib/messaging";
@@ -7,7 +8,7 @@ function render(body: string, patient: any) {
 }
 
 export async function POST(req: Request) {
-  if (!await requireSession()) return bad("Unauthorized", 401);
+  { const denied = await denyUnless("GREETING.C"); if (denied) return denied; }
   const b = await parseBody(req);
   if (!b?.patientId || !b?.templateId) return bad("Patient and template are required.");
   const [patient, template] = await Promise.all([

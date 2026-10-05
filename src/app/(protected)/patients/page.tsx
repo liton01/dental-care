@@ -5,6 +5,7 @@ import { Card, Input, Label, Button, Textarea, Modal, Pagination } from "@/compo
 import { Plus, Search, X, UserPlus, Save, Pencil, ChevronLeft, ChevronRight, FolderOpen, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { useCan } from "@/components/permissions-context";
 import PhotoUpload from "@/components/photo-upload";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -83,6 +84,7 @@ const selectOptions: Record<string, { value: string; label: string }[]> = {
 };
 
 export default function Patients() {
+    const can = useCan();
     const router = useRouter();
     const [items, setItems] = useState<any[]>([]);
     const [q, setQ] = useState("");
@@ -254,10 +256,12 @@ export default function Patients() {
                     </p>
                 </div>
 
-                <Button onClick={openNew}>
-                    <Plus size={16} className="mr-1.5" />
-                    New Patient
-                </Button>
+                {can("PATIENT.C") && (
+                    <Button onClick={openNew}>
+                        <Plus size={16} className="mr-1.5" />
+                        New Patient
+                    </Button>
+                )}
             </div>
 
             {/* Patient List */}
@@ -450,23 +454,27 @@ export default function Patients() {
                                             <FolderOpen size={16} />
                                         </button>
 
-                                        <button
-                                            className="rounded-lg p-1.5 text-teal-700 hover:bg-teal-50"
-                                            onClick={() => openEdit(p)}
-                                            title="Edit patient"
-                                            aria-label="Edit patient"
-                                        >
-                                            <Pencil size={16} />
-                                        </button>
+                                        {can("PATIENT.E") && (
+                                            <button
+                                                className="rounded-lg p-1.5 text-teal-700 hover:bg-teal-50"
+                                                onClick={() => openEdit(p)}
+                                                title="Edit patient"
+                                                aria-label="Edit patient"
+                                            >
+                                                <Pencil size={16} />
+                                            </button>
+                                        )}
 
-                                        <button
-                                            className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"
-                                            onClick={() => removePatient(p)}
-                                            title="Delete patient"
-                                            aria-label="Delete patient"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        {can("PATIENT.E") && (
+                                            <button
+                                                className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"
+                                                onClick={() => removePatient(p)}
+                                                title="Delete patient"
+                                                aria-label="Delete patient"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

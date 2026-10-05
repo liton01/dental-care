@@ -1,3 +1,4 @@
+import { denyUnless } from "@/lib/permissions";
 import { db } from "@/lib/prisma";
 import { bad, ok, parseBody, requireSession } from "@/lib/api";
 
@@ -54,7 +55,7 @@ async function nextPatientNo() {
 }
 
 export async function POST(req: Request) {
-  if (!await requireSession()) return bad("Unauthorized", 401);
+  { const denied = await denyUnless("PATIENT.C"); if (denied) return denied; }
   const body = await parseBody(req);
   if (!body?.name || !body?.phone) return bad("Name and phone are required.");
   // two attempts in case two registrations race for the same number

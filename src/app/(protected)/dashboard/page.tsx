@@ -5,8 +5,10 @@ import { UserPlus } from "lucide-react";
 import { Card, Badge } from "@/components/ui";
 import PatientSearch from "@/components/patient-search";
 import PageLoader from "@/components/page-loader";
+import { useCan } from "@/components/permissions-context";
 
 export default function Dashboard() {
+    const can = useCan();
     const [d, setD] = useState<any>();
 
     useEffect(() => {
@@ -39,13 +41,15 @@ export default function Dashboard() {
                 <div className="flex w-full items-center gap-2 sm:w-auto">
                     <PatientSearch className="w-full sm:w-96" />
 
-                    <Link
-                        href="/patients?new=1"
-                        className="btn btn-primary flex shrink-0 items-center gap-1.5 whitespace-nowrap"
-                    >
-                        <UserPlus size={16} />
-                        New Patient
-                    </Link>
+                    {can("PATIENT.C") && (
+                        <Link
+                            href="/patients?new=1"
+                            className="btn btn-primary flex shrink-0 items-center gap-1.5 whitespace-nowrap"
+                        >
+                            <UserPlus size={16} />
+                            New Patient
+                        </Link>
+                    )}
                 </div>
             </div>
 

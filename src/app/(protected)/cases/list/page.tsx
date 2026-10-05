@@ -7,6 +7,7 @@ import CaseFormModal from "@/components/case-form-modal";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import toast from "react-hot-toast";
+import { useCan } from "@/components/permissions-context";
 
 const toYMD = (d: Date) => {
     const pad = (n: number) => String(n).padStart(2, "0");
@@ -27,6 +28,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function CaseHistoryList() {
+    const can = useCan();
     const router = useRouter();
     const [items, setItems] = useState<any[]>([]);
     const [patients, setPatients] = useState<any[]>([]);
@@ -136,10 +138,12 @@ export default function CaseHistoryList() {
                     </p>
                 </div>
 
-                <Button onClick={openNew}>
-                    <Plus size={16} className="mr-1.5" />
-                    New Case
-                </Button>
+                {can("CASE.C") && (
+                    <Button onClick={openNew}>
+                        <Plus size={16} className="mr-1.5" />
+                        New Case
+                    </Button>
+                )}
             </div>
 
             <Card className="p-5">
@@ -305,21 +309,25 @@ export default function CaseHistoryList() {
                                             <Printer size={16} />
                                         </a>
 
-                                        <button
-                                            className="rounded-lg p-1.5 text-teal-700 hover:bg-teal-50"
-                                            onClick={() => openEdit(c)}
-                                            title="Edit case"
-                                        >
-                                            <Pencil size={16} />
-                                        </button>
+                                        {can("CASE.E") && (
+                                            <button
+                                                className="rounded-lg p-1.5 text-teal-700 hover:bg-teal-50"
+                                                onClick={() => openEdit(c)}
+                                                title="Edit case"
+                                            >
+                                                <Pencil size={16} />
+                                            </button>
+                                        )}
 
-                                        <button
-                                            className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"
-                                            onClick={() => remove(c)}
-                                            title="Delete case"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        {can("CASE.E") && (
+                                            <button
+                                                className="rounded-lg p-1.5 text-red-600 hover:bg-red-50"
+                                                onClick={() => remove(c)}
+                                                title="Delete case"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

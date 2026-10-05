@@ -6,6 +6,7 @@ import Footer from "./footer";
 import { usePathname } from "next/navigation";
 import { ShieldOff } from "lucide-react";
 import { canSee } from "@/lib/menu-access";
+import { PermissionsContext } from "./permissions-context";
 
 export default function LayoutShell({
     children,
@@ -50,7 +51,7 @@ export default function LayoutShell({
     };
 
     return (
-        <>
+        <PermissionsContext.Provider value={perms}>
             <Sidebar
                 collapsed={collapsed}
                 mobileOpen={mobileOpen}
@@ -96,6 +97,6 @@ export default function LayoutShell({
                     <Footer />
                 </div>
             </main>
-        </>
+        </PermissionsContext.Provider>
     );
 }
