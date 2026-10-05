@@ -11,6 +11,7 @@ const items = [
     ["Case History", "/cases/list", "▤"],
     ["Next Follow-up", "/follow-ups", "℞"],
     ["Greetings", "/greetings", "✉"],
+    ["Bulk SMS", "/sms", "✆"],
 ];
 
 // Payments & Accounting -> sub groups -> links

@@ -6,6 +6,8 @@ import { Card, Label, Button, SearchSelect, Pagination, Textarea } from "@/compo
 import { Search, RotateCw, FolderOpen, Pencil, Send, Loader2 } from "lucide-react";
 import CaseFormModal from "@/components/case-form-modal";
 import toast from "react-hot-toast";
+import SmsBalance from "@/components/sms-balance";
+import { smsInfo } from "@/lib/sms-text";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -123,10 +125,16 @@ export default function FollowUps() {
         );
 
     const sendCount = mode === "all" ? total : checked.length;
+    const info = smsInfo(message);
+    const [balanceKey, setBalanceKey] = useState(0);
 
     const sendSms = async () => {
         if (!message.trim()) {
             toast.error("Write the SMS message first.");
+            return;
+        }
+        if (info.over) {
+            toast.error(`Message is too long (max ${info.max} characters).`);
             return;
         }
         if (!sendCount) {
@@ -169,8 +177,12 @@ export default function FollowUps() {
                 { duration: 7000 }
             );
         } else {
-            toast.success(`SMS sent to ${d.sent} patient${d.sent === 1 ? "" : "s"}`);
+            toast.success(
+                `SMS sent to ${d.sent} patient${d.sent === 1 ? "" : "s"}${d.campaign ? ` · Campaign ${d.campaign}` : ""}`,
+                { duration: 6000 }
+            );
         }
+        setBalanceKey((k) => k + 1);
         setChecked([]);
         load();
     };
@@ -186,6 +198,10 @@ export default function FollowUps() {
                 <p className="text-sm text-slate-500">
                     Patients due for their next visit, with SMS reminders.
                 </p>
+            </div>
+
+            <div className="-mt-2 mb-3 flex justify-end">
+                <SmsBalance refreshKey={balanceKey} />
             </div>
 
             {/* SMS panel */}
@@ -231,10 +247,11 @@ export default function FollowUps() {
                             onChange={(e) => setMessage(e.target.value)}
                         />
 
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className={`mt-1 text-xs ${info.over ? "text-red-600" : "text-slate-500"}`}>
                             Placeholders: {"{{patientName}}"}, {"{{date}}"},{" "}
-                            {"{{clinic}}"}, {"{{patientNo}}"} ·{" "}
-                            {message.length} characters
+                            {"{{clinic}}"}, {"{{patientNo}}"} · {info.len}/{info.max} characters
+                            {info.len > 0 && ` · ${info.parts} SMS each`}
+                            {info.unicode && " · Bangla (Unicode)"}
                         </p>
                     </div>
 

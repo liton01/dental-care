@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import twilio from "twilio";
+import { adnConfigured, adnSendSingle } from "./adnsms";
 
 export async function sendEmail(to: string, subject: string, html: string) {
   const transporter = nodemailer.createTransport({
@@ -18,7 +19,8 @@ export function normalizeBdPhone(raw: string) {
 }
 
 export async function sendSms(to: string, body: string) {
-  // Bangladesh SMS gateway (BulkSMSBD) when configured, otherwise Twilio
+  // ADN SMS first, then BulkSMSBD, otherwise Twilio
+  if (adnConfigured()) return adnSendSingle(to, body);
   if (process.env.BULKSMSBD_API_KEY) {
     const url = new URL("http://bulksmsbd.net/api/smsapi");
     url.searchParams.set("api_key", process.env.BULKSMSBD_API_KEY);
@@ -35,7 +37,7 @@ export async function sendSms(to: string, body: string) {
     }
     return d;
   }
-  if (!process.env.TWILIO_ACCOUNT_SID) throw new Error("SMS is not configured (set BULKSMSBD_API_KEY or Twilio in .env)");
+  if (!process.env.TWILIO_ACCOUNT_SID) throw new Error("SMS is not configured (set ADNSMS_API_KEY and ADNSMS_API_SECRET in .env)");
   const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
   return client.messages.create({ body, from: process.env.TWILIO_FROM, to: "+" + normalizeBdPhone(to) });
 }

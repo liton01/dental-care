@@ -6,6 +6,7 @@ export const PAGE_PERMISSIONS: [string, string][] = [
     ["/follow-ups", "CASE.V"],
     ["/prescriptions", "PRESCRIPTION.V"],
     ["/greetings", "GREETING.V"],
+    ["/sms", "GREETING.V"],
     ["/payments", "PAYMENT.V"],
     ["/accounting", "PAYMENT.V"],
     ["/security", "SECURITY.V"],
