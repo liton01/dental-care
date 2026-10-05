@@ -1,8 +1,9 @@
+import { denyUnless, getPermissionCodes, LOCKOUT_MSG } from "@/lib/permissions";
 import { db } from "@/lib/prisma";
 import { bad, ok, parseBody, requireSession } from "@/lib/api";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-    if (!(await requireSession())) return bad("Unauthorized", 401);
+    { const denied = await denyUnless("SECURITY.M"); if (denied) return denied; }
 
     const id = Number(params.id);
     const b = await parseBody(req);
@@ -10,6 +11,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (!name) return bad("Role name is required.");
 
     const ids: number[] = Array.isArray(b.permissionIds) ? b.permissionIds.map(Number) : [];
+
+    // don't let an admin remove their own access to Security
+    const me = Number(((await requireSession()) as any)?.user?.id);
+    const after = await getPermissionCodes(me, { roleId: id, permissionIds: ids });
+    if (!after.includes("SECURITY.M")) {
+        const before = await getPermissionCodes(me);
+        if (before.includes("SECURITY.M")) return bad(LOCKOUT_MSG);
+    }
 
     try {
         const role = await db.$transaction(async (tx: any) => {
@@ -33,7 +42,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-    if (!(await requireSession())) return bad("Unauthorized", 401);
+    { const denied = await denyUnless("SECURITY.M"); if (denied) return denied; }
 
     const id = Number(params.id);
     const users = await db.userRole.count({ where: { roleId: id } });

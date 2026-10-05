@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import Sidebar from "./sidebar";
 import Topbar from "./topbar";
 import Footer from "./footer";
+import { usePathname } from "next/navigation";
+import { ShieldOff } from "lucide-react";
+import { canSee } from "@/lib/menu-access";
 
 export default function LayoutShell({
     children,
@@ -17,6 +20,19 @@ export default function LayoutShell({
 
     // organization branding, loaded from the database
     const [org, setOrg] = useState<any>(null);
+
+    // effective permission codes of the signed-in user (null while loading)
+    const [perms, setPerms] = useState<string[] | null>(null);
+    const path = usePathname();
+
+    useEffect(() => {
+        fetch("/api/me/permissions")
+            .then((r) => r.json())
+            .then((d) => setPerms(Array.isArray(d?.codes) ? d.codes : []))
+            .catch(() => setPerms([]));
+    }, [path]);
+
+    const allowed = perms === null || canSee(path, perms);
 
     useEffect(() => {
         fetch("/api/organization/active")
@@ -40,6 +56,7 @@ export default function LayoutShell({
                 mobileOpen={mobileOpen}
                 onNavigate={() => setMobileOpen(false)}
                 org={org}
+                perms={perms}
             />
 
             {/* mobile backdrop */}
@@ -62,7 +79,19 @@ export default function LayoutShell({
                 }`}
             >
                 <div className="flex min-h-[calc(100vh-4rem)] flex-col p-4 md:p-6">
-                    <div className="flex-1">{children}</div>
+                    <div className="flex-1">
+                        {allowed ? (
+                            children
+                        ) : (
+                            <div className="card mx-auto mt-16 max-w-md p-8 text-center">
+                                <ShieldOff size={36} className="mx-auto mb-3 text-slate-400" />
+                                <h2 className="text-lg font-semibold">No permission</h2>
+                                <p className="mt-1 text-sm text-slate-500">
+                                    Your role does not have access to this page.
+                                </p>
+                            </div>
+                        )}
+                    </div>
 
                     <Footer />
                 </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { canSee } from "@/lib/menu-access";
 
 const items = [
     ["Dashboard", "/dashboard", "▦"],
@@ -45,13 +46,22 @@ export default function Sidebar({
     mobileOpen,
     onNavigate,
     org,
+    perms,
 }: {
     collapsed: boolean;
     mobileOpen: boolean;
     onNavigate: () => void;
     org?: any;
+    perms: string[] | null;
 }) {
     const path = usePathname();
+
+    // only menus the signed-in user has permission for
+    const mainItems = items.filter(([, href]) => canSee(href, perms));
+    const accGroups = accountingGroups
+        .map(([g, links]) => [g, links.filter(([, href]) => canSee(href, perms))] as [string, [string, string][]])
+        .filter(([, links]) => links.length > 0);
+    const showSecurity = canSee("/security", perms);
 
     const isSecurityActive = path.startsWith("/security");
 
@@ -127,7 +137,7 @@ export default function Sidebar({
                 {/* =================================================
                     MAIN MENUS
                 ================================================== */}
-                {items.map(([name, href, icon]) => {
+                {mainItems.map(([name, href, icon]) => {
                     const isActive = path === href;
 
                     return (
@@ -162,6 +172,7 @@ export default function Sidebar({
                     );
                 })}
 
+                {accGroups.length > 0 && (<>
                 {/* =================================================
                     PAYMENTS & ACCOUNTING PARENT MENU
                 ================================================== */}
@@ -226,7 +237,7 @@ export default function Sidebar({
                             pl-3
                         "
                     >
-                        {accountingGroups.map(([group, links]) => (
+                        {accGroups.map(([group, links]) => (
                             <div key={group}>
                                 <div className="px-4 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                                     {group}
@@ -263,6 +274,8 @@ export default function Sidebar({
                         ))}
                     </div>
                 )}
+
+                </>)}
 
                 {/* =================================================
                     SETTINGS PARENT MENU
@@ -358,6 +371,7 @@ export default function Sidebar({
                     </div>
                 )}
 
+                {showSecurity && (<>
                 {/* =================================================
                     SECURITY PARENT MENU
                 ================================================== */}
@@ -451,6 +465,7 @@ export default function Sidebar({
                         })}
                     </div>
                 )}
+                </>)}
             </nav>
         </aside>
     );

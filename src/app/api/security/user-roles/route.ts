@@ -1,3 +1,9 @@
+import { denyUnless, getPermissionCodes, LOCKOUT_MSG } from "@/lib/permissions";
+
+async function locksOut(me: number, roleIds: number[]) {
+    const after = await getPermissionCodes(me, { roleIds });
+    return !after.includes("SECURITY.M");
+}
 import { db } from "@/lib/prisma";
 import { bad, ok, parseBody, requireSession } from "@/lib/api";
 
@@ -7,14 +13,14 @@ const include = {
 };
 
 export async function GET() {
-    if (!(await requireSession())) return bad("Unauthorized", 401);
+    { const denied = await denyUnless("SECURITY.V"); if (denied) return denied; }
     const rows = await db.userRole.findMany({ include });
     rows.sort((a: any, b: any) => a.user.name.localeCompare(b.user.name) || a.role.name.localeCompare(b.role.name));
     return ok(rows);
 }
 
 export async function POST(req: Request) {
-    if (!(await requireSession())) return bad("Unauthorized", 401);
+    { const denied = await denyUnless("SECURITY.M"); if (denied) return denied; }
     const b = await parseBody(req);
     const userId = Number(b?.userId), roleId = Number(b?.roleId);
     if (!userId || !roleId) return bad("User and role are required.");
@@ -28,12 +34,20 @@ export async function POST(req: Request) {
 
 // change an existing assignment: { userId, roleId } -> { newUserId, newRoleId }
 export async function PATCH(req: Request) {
-    if (!(await requireSession())) return bad("Unauthorized", 401);
+    { const denied = await denyUnless("SECURITY.M"); if (denied) return denied; }
     const b = await parseBody(req);
     const userId = Number(b?.userId), roleId = Number(b?.roleId);
     const newUserId = Number(b?.newUserId), newRoleId = Number(b?.newRoleId);
     if (!userId || !roleId || !newUserId || !newRoleId) return bad("User and role are required.");
     if (userId === newUserId && roleId === newRoleId) return ok({ ok: true });
+
+    const me = Number(((await requireSession()) as any)?.user?.id);
+    if (userId === me || newUserId === me) {
+        const mine = (await db.userRole.findMany({ where: { userId: me }, select: { roleId: true } })).map((r: any) => r.roleId);
+        let next = userId === me ? mine.filter((x: number) => x !== roleId) : mine;
+        if (newUserId === me) next = Array.from(new Set([...next, newRoleId]));
+        if (await locksOut(me, next)) return bad(LOCKOUT_MSG);
+    }
     try {
         const row = await db.$transaction(async (tx: any) => {
             await tx.userRole.delete({ where: { userId_roleId: { userId, roleId } } });
@@ -50,6 +64,7 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
     const session: any = await requireSession();
     if (!session) return bad("Unauthorized", 401);
+    { const denied = await denyUnless("SECURITY.M"); if (denied) return denied; }
     const sp = new URL(req.url).searchParams;
     const userId = Number(sp.get("userId")), roleId = Number(sp.get("roleId"));
     if (!userId || !roleId) return bad("User and role are required.");
@@ -58,6 +73,8 @@ export async function DELETE(req: Request) {
     if (Number(session.user?.id) === userId) {
         const count = await db.userRole.count({ where: { userId } });
         if (count <= 1) return bad("You cannot remove your own only role while signed in.");
+        const mine = (await db.userRole.findMany({ where: { userId }, select: { roleId: true } })).map((r: any) => r.roleId);
+        if (await locksOut(userId, mine.filter((x: number) => x !== roleId))) return bad(LOCKOUT_MSG);
     }
 
     try {

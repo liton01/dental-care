@@ -1,8 +1,9 @@
+import { denyUnless } from "@/lib/permissions";
 import { db } from "@/lib/prisma";
 import { bad, ok, parseBody, requireSession } from "@/lib/api";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-    if (!(await requireSession())) return bad("Unauthorized", 401);
+    { const denied = await denyUnless("SECURITY.M"); if (denied) return denied; }
     const b = await parseBody(req);
     const code = String(b?.code || "").trim().toUpperCase();
     const name = String(b?.name || "").trim();
@@ -22,7 +23,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-    if (!(await requireSession())) return bad("Unauthorized", 401);
+    { const denied = await denyUnless("SECURITY.M"); if (denied) return denied; }
     const id = Number(params.id);
     const [roles, users] = await Promise.all([
         db.rolePermission.count({ where: { permissionId: id } }),

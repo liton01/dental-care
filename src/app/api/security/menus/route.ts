@@ -1,3 +1,4 @@
+import { denyUnless } from "@/lib/permissions";
 import { db } from "@/lib/prisma";
 import {
     bad,
@@ -7,9 +8,7 @@ import {
 } from "@/lib/api";
 
 export async function GET() {
-    if (!(await requireSession())) {
-        return bad("Unauthorized", 401);
-    }
+    { const denied = await denyUnless("SECURITY.V"); if (denied) return denied; }
 
     return ok(
         await db.menu.findMany({
@@ -24,9 +23,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-    if (!(await requireSession())) {
-        return bad("Unauthorized", 401);
-    }
+    { const denied = await denyUnless("SECURITY.M"); if (denied) return denied; }
 
     const b = await parseBody(req);
 
