@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TableLoader } from "@/components/loaders";
 import { Card, Label, Button, Badge, Modal, SearchSelect } from "@/components/ui";
 import { Plus, Pencil, Trash2, Save, Search } from "lucide-react";
 import toast from "react-hot-toast";
@@ -234,13 +235,7 @@ export default function UserRolesPage() {
                                 </tr>
                             )}
 
-                            {loading && (
-                                <tr>
-                                    <td colSpan={5} className="p-6 text-center text-slate-500">
-                                        Loading...
-                                    </td>
-                                </tr>
-                            )}
+                            {loading && <TableLoader colSpan={5} />}
                         </tbody>
                     </table>
                 </div>

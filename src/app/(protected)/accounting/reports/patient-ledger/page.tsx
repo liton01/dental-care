@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Card, Label, Button, SearchSelect } from "@/components/ui";
-import { Search, RotateCw, Loader2 } from "lucide-react";
+import { Search, RotateCw, Loader2, FileDown } from "lucide-react";
 import DatePicker from "react-datepicker";
 import toast from "react-hot-toast";
 import "react-datepicker/dist/react-datepicker.css";
@@ -47,19 +47,31 @@ export default function SubsidiaryLedger() {
             });
     }, []);
 
+    const params = () => {
+        const p = new URLSearchParams();
+        if (patientId) p.set("patientId", patientId);
+        if (accountId) p.set("accountId", accountId);
+        if (dateFrom) p.set("dateFrom", dateFrom);
+        if (dateTo) p.set("dateTo", dateTo);
+        if (postedOnly) p.set("postedOnly", "1");
+        return p;
+    };
+
+    const exportPdf = () => {
+        if (!patientId && !accountId) {
+            toast.error("Select a patient or a ledger head.");
+            return;
+        }
+        window.open("/api/reports/patient-ledger/pdf?" + params(), "_blank");
+    };
+
     const run = async () => {
         if (!patientId && !accountId) {
             toast.error("Select a patient or a ledger head.");
             return;
         }
         setLoading(true);
-        const params = new URLSearchParams();
-        if (patientId) params.set("patientId", patientId);
-        if (accountId) params.set("accountId", accountId);
-        if (dateFrom) params.set("dateFrom", dateFrom);
-        if (dateTo) params.set("dateTo", dateTo);
-        if (postedOnly) params.set("postedOnly", "1");
-        const r = await fetch("/api/reports/patient-ledger?" + params);
+        const r = await fetch("/api/reports/patient-ledger?" + params());
         if (r.ok) setData(await r.json());
         else {
             setData(null);
@@ -167,6 +179,11 @@ export default function SubsidiaryLedger() {
                             <Search size={16} className="mr-1.5" />
                         )}
                         Run Report
+                    </Button>
+
+                    <Button variant="secondary" onClick={exportPdf} disabled={!patientId && !accountId}>
+                        <FileDown size={16} className="mr-1.5" />
+                        Export PDF
                     </Button>
 
                     <Button

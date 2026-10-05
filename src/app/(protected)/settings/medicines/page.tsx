@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { TableLoader } from "@/components/loaders";
 import { Card, Input, Label, Button, Modal, Pagination } from "@/components/ui";
 import { Plus, Search, X, Save, Pencil, Trash2, RotateCw, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
@@ -26,6 +27,7 @@ const empty = {
 };
 
 export default function Medicines() {
+    const [loading, setLoading] = useState(true);
     const [items, setItems] = useState<any[]>([]);
     const [q, setQ] = useState("");
     const [fltForm, setFltForm] = useState("");
@@ -51,12 +53,14 @@ export default function Medicines() {
         if (query.trim()) params.set("q", query.trim());
         if (form) params.set("dosageForm", form);
         if (mfr) params.set("manufacturerType", mfr);
+        setLoading(true);
         fetch("/api/medicines?" + params.toString())
             .then((r) => r.json())
             .then((d) => {
                 setItems(d.items || []);
                 setTotal(d.total || 0);
-            });
+            })
+            .finally(() => setLoading(false));
     };
 
     const search = (query = q, form = fltForm, mfr = fltMfr) => {
@@ -289,7 +293,9 @@ export default function Medicines() {
                                 </tr>
                             ))}
 
-                            {items.length === 0 && (
+                            {loading && items.length === 0 && <TableLoader colSpan={9} />}
+
+                            {!loading && items.length === 0 && (
                                 <tr>
                                     <td colSpan={9} className="p-8 text-center text-slate-500">
                                         No medicines found

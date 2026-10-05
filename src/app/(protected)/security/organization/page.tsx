@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { TableLoader } from "@/components/loaders";
 import { Card, Input, Label, Button, Textarea, Modal, Pagination } from "@/components/ui";
 import { Plus, X, Save, Pencil, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -40,6 +41,7 @@ const fields: { key: string; label: string; full?: boolean }[] = [
 ];
 
 export default function Organization() {
+    const [loading, setLoading] = useState(true);
     const [items, setItems] = useState<any[]>([]);
     const [form, setForm] = useState<any>(empty);
     const [editing, setEditing] = useState<number | null>(null);
@@ -48,13 +50,16 @@ export default function Organization() {
     const [pageSize, setPageSize] = useState(10);
     const [total, setTotal] = useState(0);
 
-    const load = (pg = page, ps = pageSize) =>
-        fetch(`/api/organization?page=${pg}&pageSize=${ps}`)
+    const load = (pg = page, ps = pageSize) => {
+        setLoading(true);
+        return fetch(`/api/organization?page=${pg}&pageSize=${ps}`)
             .then((r) => r.json())
             .then((d) => {
                 setItems(d.items || []);
                 setTotal(d.total || 0);
-            });
+            })
+            .finally(() => setLoading(false));
+    }
 
     const goToPage = (pg: number) => {
         setPage(pg);
@@ -207,7 +212,9 @@ export default function Organization() {
                                 </tr>
                             ))}
 
-                            {items.length === 0 && (
+                            {loading && items.length === 0 && <TableLoader colSpan={9} />}
+
+                            {!loading && items.length === 0 && (
                                 <tr>
                                     <td
                                         colSpan={9}

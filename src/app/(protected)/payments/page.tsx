@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { TableLoader } from "@/components/loaders";
 import { Card, Input, Label, Button, Modal, SearchSelect, Pagination } from "@/components/ui";
 import { Plus, X, Save, Pencil, Trash2, RotateCw, FileCheck2, Smartphone } from "lucide-react";
 import toast from "react-hot-toast";
@@ -39,6 +40,7 @@ const empty = {
 };
 
 export default function BillCollection() {
+    const [loading, setLoading] = useState(true);
     const can = useCan();
     const [patients, setPatients] = useState<any[]>([]);
     const [items, setItems] = useState<any[]>([]);
@@ -80,12 +82,14 @@ export default function BillCollection() {
         if (pid) params.set("patientId", pid);
         if (type) params.set("type", type);
         if (method) params.set("method", method);
+        setLoading(true);
         fetch("/api/payments?" + params.toString())
             .then((r) => r.json())
             .then((d) => {
                 setItems(d.items || []);
                 setTotal(d.total || 0);
-            });
+            })
+            .finally(() => setLoading(false));
     };
 
     const search = (
@@ -524,7 +528,9 @@ export default function BillCollection() {
                                 </tr>
                             ))}
 
-                            {items.length === 0 && (
+                            {loading && items.length === 0 && <TableLoader colSpan={11} />}
+
+                            {!loading && items.length === 0 && (
                                 <tr>
                                     <td
                                         colSpan={11}

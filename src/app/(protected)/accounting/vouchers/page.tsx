@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { TableLoader } from "@/components/loaders";
 import { Card, Input, Label, Button, Modal, SearchSelect, Pagination, Textarea } from "@/components/ui";
 import { Search, RotateCw, Eye, Pencil, Trash2, X, Save, Plus, CheckCircle2, Undo2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -45,6 +46,7 @@ const emptyForm = {
 };
 
 export default function JournalVouchers() {
+    const [loading, setLoading] = useState(true);
     const [items, setItems] = useState<any[]>([]);
     const [accounts, setAccounts] = useState<any[]>([]);
     const [q, setQ] = useState("");
@@ -79,13 +81,15 @@ export default function JournalVouchers() {
         if (type) params.set("voucherType", type);
         if (posted) params.set("isPosted", posted);
         if (pid) params.set("patientId", pid);
+        setLoading(true);
         fetch("/api/vouchers?" + params.toString())
             .then((r) => r.json())
             .then((d) => {
                 setItems(d.items || []);
                 setTotal(d.total || 0);
                 setChecked([]);
-            });
+            })
+            .finally(() => setLoading(false));
     };
 
     useEffect(() => {
@@ -491,7 +495,9 @@ export default function JournalVouchers() {
                                 );
                             })}
 
-                            {items.length === 0 && (
+                            {loading && items.length === 0 && <TableLoader colSpan={12} />}
+
+                            {!loading && items.length === 0 && (
                                 <tr>
                                     <td colSpan={12} className="p-8 text-center text-slate-500">
                                         No vouchers yet. Finalize a bill

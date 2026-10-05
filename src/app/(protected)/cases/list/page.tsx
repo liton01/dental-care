@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { TableLoader } from "@/components/loaders";
 import { useRouter } from "next/navigation";
 import { Card, Input, Label, Button, SearchSelect, Pagination } from "@/components/ui";
 import { Plus, Search, RotateCw, Pencil, Trash2, FolderOpen, Printer } from "lucide-react";
@@ -28,6 +29,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function CaseHistoryList() {
+    const [loading, setLoading] = useState(true);
     const can = useCan();
     const router = useRouter();
     const [items, setItems] = useState<any[]>([]);
@@ -58,13 +60,15 @@ export default function CaseHistoryList() {
         if (pid) params.set("patientId", pid);
         if (from) params.set("dateFrom", from);
         if (to) params.set("dateTo", to);
+        setLoading(true);
         fetch("/api/cases?" + params.toString())
             .then((r) => r.json())
             .then((d) => {
                 if (d?.error) toast.error(d.error, { duration: 8000 });
                 setItems(d.items || []);
                 setTotal(d.total || 0);
-            });
+            })
+            .finally(() => setLoading(false));
     };
 
     const search = (
@@ -332,7 +336,9 @@ export default function CaseHistoryList() {
                                 </tr>
                             ))}
 
-                            {items.length === 0 && (
+                            {loading && items.length === 0 && <TableLoader colSpan={8} />}
+
+                            {!loading && items.length === 0 && (
                                 <tr>
                                     <td
                                         colSpan={8}

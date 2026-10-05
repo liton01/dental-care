@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TableLoader } from "@/components/loaders";
 import { Card, Input, Label, Button, Badge, Modal } from "@/components/ui";
 import { UserPlus, Pencil, Trash2, Save, Search } from "lucide-react";
 import PhotoUpload from "@/components/photo-upload";
@@ -16,6 +17,7 @@ const empty = {
 };
 
 export default function Security() {
+    const [loading, setLoading] = useState(true);
     const [users, setUsers] = useState<any[]>([]);
     const [roles, setRoles] = useState<any[]>([]);
     const [q, setQ] = useState("");
@@ -26,9 +28,11 @@ export default function Security() {
     const [saving, setSaving] = useState(false);
 
     const load = () => {
+        setLoading(true);
         fetch("/api/security/users")
             .then((r) => r.json())
-            .then((d) => setUsers(Array.isArray(d) ? d : []));
+            .then((d) => setUsers(Array.isArray(d) ? d : []))
+            .finally(() => setLoading(false));
 
         fetch("/api/security/roles")
             .then((r) => r.json())
@@ -204,7 +208,9 @@ export default function Security() {
                                     </tr>
                                 ))}
 
-                                {shown.length === 0 && (
+                                {loading && shown.length === 0 && <TableLoader colSpan={5} />}
+
+                                {!loading && shown.length === 0 && (
                                     <tr>
                                         <td colSpan={5} className="p-6 text-center text-slate-500">
                                             No users found

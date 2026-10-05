@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { BlockLoader } from "@/components/loaders";
 import { Card, Input, Label, Button, Textarea, SearchSelect } from "@/components/ui";
 import { Send, Save } from "lucide-react";
 import toast from "react-hot-toast";
@@ -8,6 +9,7 @@ import { useCan } from "@/components/permissions-context";
 const TABS = ["Send Greeting", "Template Management"] as const;
 
 export default function Greetings() {
+    const [loading, setLoading] = useState(true);
     const can = useCan();
     const [tab, setTab] = useState<(typeof TABS)[number]>("Send Greeting");
     const [templates, setTemplates] = useState<any[]>([]);
@@ -23,10 +25,13 @@ export default function Greetings() {
         templateId: "",
     });
 
-    const load = () =>
-        fetch("/api/greetings/templates")
+    const load = () => {
+        setLoading(true);
+        return fetch("/api/greetings/templates")
             .then((r) => r.json())
-            .then(setTemplates);
+            .then(setTemplates)
+            .finally(() => setLoading(false));
+    }
 
     useEffect(() => {
         load();
@@ -244,7 +249,9 @@ export default function Greetings() {
                                 </div>
                             ))}
 
-                            {templates.length === 0 && (
+                            {loading && templates.length === 0 && <BlockLoader />}
+
+                            {!loading && templates.length === 0 && (
                                 <div className="py-6 text-center text-slate-500">
                                     No templates yet
                                 </div>

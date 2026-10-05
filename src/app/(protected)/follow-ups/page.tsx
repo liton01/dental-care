@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { TableLoader } from "@/components/loaders";
 import { useRouter } from "next/navigation";
 import { Card, Label, Button, SearchSelect, Pagination, Textarea } from "@/components/ui";
 import { Search, RotateCw, FolderOpen, Pencil, Send, Loader2 } from "lucide-react";
@@ -32,6 +33,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function FollowUps() {
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
     const [items, setItems] = useState<any[]>([]);
     const [total, setTotal] = useState(0);
@@ -73,13 +75,15 @@ export default function FollowUps() {
         if (f.dateTo) params.set("dateTo", f.dateTo);
         if (f.includePast) params.set("includePast", "1");
         if (f.smsStatus) params.set("smsStatus", f.smsStatus);
+        setLoading(true);
         fetch("/api/follow-ups?" + params.toString())
             .then((r) => r.json())
             .then((d) => {
                 if (d?.error) toast.error(d.error, { duration: 8000 });
                 setItems(d.items || []);
                 setTotal(d.total || 0);
-            });
+            })
+            .finally(() => setLoading(false));
     };
 
     // any filter change: back to page 1, clear the selection
@@ -497,7 +501,9 @@ export default function FollowUps() {
                                 );
                             })}
 
-                            {items.length === 0 && (
+                            {loading && items.length === 0 && <TableLoader colSpan={9} />}
+
+                            {!loading && items.length === 0 && (
                                 <tr>
                                     <td colSpan={9} className="p-8 text-center text-slate-500">
                                         No follow-ups scheduled

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { BlockLoader } from "@/components/loaders";
 import { Card, Input, Label, Button } from "@/components/ui";
 import { ChevronRight, ChevronDown, RotateCw, ListTree, FolderTree, Plus, Save, Trash2, Eraser } from "lucide-react";
 import toast from "react-hot-toast";
@@ -115,6 +116,7 @@ function TreeNode({
 }
 
 export default function ChartOfAccounts() {
+    const [loading, setLoading] = useState(true);
     const [tree, setTree] = useState<any[]>([]);
     const [q, setQ] = useState("");
     const [forceOpen, setForceOpen] = useState<boolean | null>(null);
@@ -122,10 +124,13 @@ export default function ChartOfAccounts() {
     const [name, setName] = useState("");
     const [err, setErr] = useState("");
 
-    const load = () =>
-        fetch("/api/accounts/chart")
+    const load = () => {
+        setLoading(true);
+        return fetch("/api/accounts/chart")
             .then((r) => r.json())
-            .then((d) => setTree(Array.isArray(d) ? d : []));
+            .then((d) => setTree(Array.isArray(d) ? d : []))
+            .finally(() => setLoading(false));
+    }
 
     useEffect(() => {
         load();
@@ -417,7 +422,9 @@ export default function ChartOfAccounts() {
                             </TreeNode>
                         ))}
 
-                        {filtered.length === 0 && (
+                        {loading && filtered.length === 0 && <BlockLoader />}
+
+                        {!loading && filtered.length === 0 && (
                             <div className="p-8 text-center text-slate-500">
                                 No accounts found
                             </div>

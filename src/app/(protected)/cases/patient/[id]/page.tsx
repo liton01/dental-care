@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { BlockLoader } from "@/components/loaders";
 import { useParams, useRouter } from "next/navigation";
 import { Card, Button } from "@/components/ui";
 import { Plus, ArrowLeft, Pencil, Trash2, Printer } from "lucide-react";
@@ -21,6 +22,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function PatientCaseHistory() {
+    const [loading, setLoading] = useState(true);
     const can = useCan();
     const { id } = useParams<{ id: string }>();
     const router = useRouter();
@@ -29,13 +31,16 @@ export default function PatientCaseHistory() {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingCase, setEditingCase] = useState<any | null>(null);
 
-    const load = () =>
-        fetch(`/api/cases?patientId=${id}`)
+    const load = () => {
+        setLoading(true);
+        return fetch(`/api/cases?patientId=${id}`)
             .then((r) => r.json())
             .then((d) => {
                 if (d?.error) toast.error(d.error, { duration: 8000 });
                 setItems(Array.isArray(d) ? d : []);
-            });
+            })
+            .finally(() => setLoading(false));
+    }
 
     useEffect(() => {
         fetch(`/api/patients/${id}`)
@@ -177,7 +182,13 @@ export default function PatientCaseHistory() {
                         </div>
                     ))}
 
-                    {items.length === 0 && (
+                    {loading && items.length === 0 && (
+                        <div className="col-span-full">
+                            <BlockLoader />
+                        </div>
+                    )}
+
+                    {!loading && items.length === 0 && (
                         <div className="col-span-full py-8 text-center text-slate-500">
                             No case history yet for this patient
                         </div>

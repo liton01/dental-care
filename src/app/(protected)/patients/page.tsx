@@ -1,6 +1,7 @@
 
 "use client";
 import { useEffect, useState } from "react";
+import { TableLoader } from "@/components/loaders";
 import { Card, Input, Label, Button, Textarea, Modal, Pagination } from "@/components/ui";
 import { Plus, Search, X, UserPlus, Save, Pencil, ChevronLeft, ChevronRight, FolderOpen, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -84,6 +85,7 @@ const selectOptions: Record<string, { value: string; label: string }[]> = {
 };
 
 export default function Patients() {
+    const [loading, setLoading] = useState(true);
     const can = useCan();
     const router = useRouter();
     const [items, setItems] = useState<any[]>([]);
@@ -124,12 +126,14 @@ export default function Patients() {
         if (gender) params.set("gender", gender);
         if (from) params.set("dateFrom", from);
         if (to) params.set("dateTo", to);
+        setLoading(true);
         fetch("/api/patients?" + params.toString())
             .then((r) => r.json())
             .then((d) => {
-                setItems(d.items);
+                setItems(d.items || []);
                 setTotal(d.total);
-            });
+            })
+            .finally(() => setLoading(false));
     };
 
     const search = (
@@ -478,6 +482,15 @@ export default function Patients() {
                                     </td>
                                 </tr>
                             ))}
+                            {loading && items.length === 0 && <TableLoader colSpan={11} />}
+
+                            {!loading && items.length === 0 && (
+                                <tr>
+                                    <td colSpan={11} className="p-8 text-center text-slate-500">
+                                        No patients found
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

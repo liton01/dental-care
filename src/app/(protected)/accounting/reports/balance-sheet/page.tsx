@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Card, Label, Button } from "@/components/ui";
-import { Search, RotateCw, Loader2 } from "lucide-react";
+import { Search, RotateCw, Loader2, FileDown } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -56,12 +56,18 @@ export default function BalanceSheet() {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(false);
 
+    const params = () => {
+        const p = new URLSearchParams();
+        if (asOf) p.set("asOf", asOf);
+        if (postedOnly) p.set("postedOnly", "1");
+        return p;
+    };
+
+    const exportPdf = () => window.open("/api/reports/balance-sheet/pdf?" + params(), "_blank");
+
     const run = async () => {
         setLoading(true);
-        const params = new URLSearchParams();
-        if (asOf) params.set("asOf", asOf);
-        if (postedOnly) params.set("postedOnly", "1");
-        const r = await fetch("/api/reports/balance-sheet?" + params);
+        const r = await fetch("/api/reports/balance-sheet?" + params());
         setData(r.ok ? await r.json() : null);
         setLoading(false);
     };
@@ -112,6 +118,11 @@ export default function BalanceSheet() {
                             <Search size={16} className="mr-1.5" />
                         )}
                         Run Report
+                    </Button>
+
+                    <Button variant="secondary" onClick={exportPdf}>
+                        <FileDown size={16} className="mr-1.5" />
+                        Export PDF
                     </Button>
 
                     <Button
