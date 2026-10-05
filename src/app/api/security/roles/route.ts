@@ -2,40 +2,39 @@ import { db } from "@/lib/prisma";
 import { bad, ok, parseBody, requireSession } from "@/lib/api";
 
 export async function GET() {
-    if (!await requireSession()) {
-        return bad("Unauthorized", 401);
-    }
+    if (!(await requireSession())) return bad("Unauthorized", 401);
 
     return ok(
         await db.role.findMany({
             include: {
-                permissions: {
-                    include: {
-                        permission: true,
-                    },
-                },
+                permissions: { include: { permission: true } },
+                _count: { select: { users: true } },
             },
-            orderBy: {
-                name: "asc",
-            },
+            orderBy: { name: "asc" },
         })
     );
 }
 
 export async function POST(req: Request) {
-    if (!await requireSession()) {
-        return bad("Unauthorized", 401);
-    }
+    if (!(await requireSession())) return bad("Unauthorized", 401);
 
     const b = await parseBody(req);
+    const name = String(b?.name || "").trim();
+    if (!name) return bad("Role name is required.");
 
-    return ok(
-        await db.role.create({
+    const ids: number[] = Array.isArray(b.permissionIds) ? b.permissionIds.map(Number) : [];
+
+    try {
+        const role = await db.role.create({
             data: {
-                name: b.name,
+                name,
                 description: b.description || null,
+                permissions: ids.length ? { create: ids.map((permissionId) => ({ permissionId })) } : undefined,
             },
-        }),
-        201
-    );
+        });
+        return ok(role, 201);
+    } catch (e: any) {
+        if (e?.code === "P2002") return bad("A role with this name already exists.");
+        return bad("Failed to create role.", 500);
+    }
 }
