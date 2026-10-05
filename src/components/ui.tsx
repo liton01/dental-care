@@ -67,8 +67,9 @@ export function SearchSelect({
 export function Modal({open,title,onClose,children,wide}:{open:boolean;title:string;onClose:()=>void;children:React.ReactNode;wide?:boolean}) {
   if(!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className={`card max-h-[90vh] w-full ${wide?"max-w-4xl":"max-w-2xl"} overflow-y-auto p-5`} onClick={(e)=>e.stopPropagation()}>
+    // clicking outside does not close: only the X or Cancel buttons do
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className={`card max-h-[90vh] w-full ${wide?"max-w-4xl":"max-w-2xl"} overflow-y-auto p-5`}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-semibold">{title}</h2>
           <button type="button" className="text-slate-400 hover:text-slate-600" onClick={onClose} aria-label="Close"><X size={18}/></button>
