@@ -379,7 +379,7 @@ export default function JournalVouchers() {
                                     />
                                 </th>
                                 <th className="p-3">Voucher No</th>
-                                <th className="p-3">Posting Id</th>
+                                <th className="p-3">Patient</th>
                                 <th className="p-3">Date</th>
                                 <th className="p-3">Posting Date</th>
                                 <th className="p-3">Type</th>
@@ -412,8 +412,10 @@ export default function JournalVouchers() {
                                             {v.voucherNo}
                                         </td>
 
-                                        <td className="p-3">
-                                            {v.voucherPostingId || "-"}
+                                        <td className="p-3 whitespace-nowrap">
+                                            {v.payment?.patient
+                                                ? `${v.payment.patient.name} (${v.payment.patient.patientNo})`
+                                                : "-"}
                                         </td>
 
                                         <td className="p-3 whitespace-nowrap">
