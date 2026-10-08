@@ -99,39 +99,39 @@ async function seedChartOfAccounts() {
 async function seedMedicines() {
   const count = await prisma.medicine.count();
   if (count > 0) return;
-  await prisma.medicine.createMany({
-    data: [
-      { name: "Amoxicillin", genericName: "Amoxicillin", strength: "125 mg/5 mL", dosageForm: "Suspension", createdBy: "seed" },
-      { name: "Amoxicillin", genericName: "Amoxicillin", strength: "250 mg/5 mL", dosageForm: "Suspension", createdBy: "seed" },
-      { name: "Amoxicillin", genericName: "Amoxicillin", strength: "250 mg", dosageForm: "Capsule", createdBy: "seed" },
-      { name: "Amoxicillin", genericName: "Amoxicillin", strength: "500 mg", dosageForm: "Capsule", createdBy: "seed" },
-      { name: "Amoxicillin + Clavulanic Acid", genericName: "Amoxicillin + Clavulanic Acid", strength: "375 mg", dosageForm: "Tablet", createdBy: "seed" },
-      { name: "Amoxicillin + Clavulanic Acid", genericName: "Amoxicillin + Clavulanic Acid", strength: "625 mg", dosageForm: "Tablet", createdBy: "seed" },
-      { name: "Metronidazole", genericName: "Metronidazole", strength: "200 mg/5 mL", dosageForm: "Suspension", createdBy: "seed" },
-      { name: "Metronidazole", genericName: "Metronidazole", strength: "400 mg", dosageForm: "Tablet", createdBy: "seed" },
-      { name: "Metronidazole", genericName: "Metronidazole", strength: "500 mg", dosageForm: "Tablet", createdBy: "seed" },
-      { name: "Chlorhexidine", genericName: "Chlorhexidine", strength: "0.12 %", dosageForm: "Mouthwash", createdBy: "seed" },
-      { name: "Chlorhexidine", genericName: "Chlorhexidine", strength: "0.20 %", dosageForm: "Mouthwash", createdBy: "seed" },
-      { name: "Chlorhexidine", genericName: "Chlorhexidine", strength: "1 %", dosageForm: "Gel", createdBy: "seed" },
-      { name: "Chlorhexidine", genericName: "Chlorhexidine", strength: "2 %", dosageForm: "Gel", createdBy: "seed" },
-      { name: "Paracetamol", genericName: "Paracetamol", strength: "120 mg/5 mL", dosageForm: "Syrup", createdBy: "seed" },
-      { name: "Paracetamol", genericName: "Paracetamol", strength: "250 mg/5 mL", dosageForm: "Syrup", createdBy: "seed" },
-      { name: "Paracetamol", genericName: "Paracetamol", strength: "500 mg", dosageForm: "Tablet", createdBy: "seed" },
-      { name: "Ibuprofen", genericName: "Ibuprofen", strength: "100 mg/5 mL", dosageForm: "Suspension", createdBy: "seed" },
-      { name: "Ibuprofen", genericName: "Ibuprofen", strength: "200 mg", dosageForm: "Tablet", createdBy: "seed" },
-      { name: "Ibuprofen", genericName: "Ibuprofen", strength: "400 mg", dosageForm: "Tablet", createdBy: "seed" },
-      { name: "Lidocaine", genericName: "Lidocaine", strength: "2 %", dosageForm: "Gel", createdBy: "seed" },
-      { name: "Lidocaine", genericName: "Lidocaine", strength: "2 %", dosageForm: "Injection", createdBy: "seed" },
-      { name: "Benzocaine", genericName: "Benzocaine", strength: "10 %", dosageForm: "Gel", createdBy: "seed" },
-      { name: "Benzocaine", genericName: "Benzocaine", strength: "20 %", dosageForm: "Gel", createdBy: "seed" },
-      { name: "Benzydamine", genericName: "Benzydamine", strength: "0.15 %", dosageForm: "Mouthwash", createdBy: "seed" },
-      { name: "Miconazole", genericName: "Miconazole", strength: "2 %", dosageForm: "Oral Gel", createdBy: "seed" },
-      { name: "Nystatin", genericName: "Nystatin", strength: "100,000 IU/mL", dosageForm: "Oral Suspension", createdBy: "seed" },
-      { name: "Triamcinolone Acetonide", genericName: "Triamcinolone Acetonide", strength: "0.1 %", dosageForm: "Oral Paste", createdBy: "seed" },
-      { name: "Povidone-Iodine", genericName: "Povidone-Iodine", strength: "1 %", dosageForm: "Gargle/Solution", createdBy: "seed" },
-      { name: "Hydrogen Peroxide", genericName: "Hydrogen Peroxide", strength: "3 %", dosageForm: "Solution", createdBy: "seed" },
-    ],
-  });
+  const rows = [
+      { name: "Amoxicillin", genericName: "Amoxicillin", strength: "125 mg/5 mL", dosageForm: "Suspension", url: "" },
+      { name: "Amoxicillin", genericName: "Amoxicillin", strength: "250 mg/5 mL", dosageForm: "Suspension", url: "" },
+      { name: "Amoxicillin", genericName: "Amoxicillin", strength: "250 mg", dosageForm: "Capsule", url: "" },
+      { name: "Amoxicillin", genericName: "Amoxicillin", strength: "500 mg", dosageForm: "Capsule", url: "" },
+      { name: "Amoxicillin + Clavulanic Acid", genericName: "Amoxicillin + Clavulanic Acid", strength: "375 mg", dosageForm: "Tablet", url: "" },
+      { name: "Amoxicillin + Clavulanic Acid", genericName: "Amoxicillin + Clavulanic Acid", strength: "625 mg", dosageForm: "Tablet", url: "" },
+      { name: "Metronidazole", genericName: "Metronidazole", strength: "200 mg/5 mL", dosageForm: "Suspension", url: "" },
+      { name: "Metronidazole", genericName: "Metronidazole", strength: "400 mg", dosageForm: "Tablet", url: "" },
+      { name: "Metronidazole", genericName: "Metronidazole", strength: "500 mg", dosageForm: "Tablet", url: "" },
+      { name: "Chlorhexidine", genericName: "Chlorhexidine", strength: "0.12 %", dosageForm: "Mouthwash", url: "" },
+      { name: "Chlorhexidine", genericName: "Chlorhexidine", strength: "0.20 %", dosageForm: "Mouthwash", url: "" },
+      { name: "Chlorhexidine", genericName: "Chlorhexidine", strength: "1 %", dosageForm: "Gel", url: "" },
+      { name: "Chlorhexidine", genericName: "Chlorhexidine", strength: "2 %", dosageForm: "Gel", url: "" },
+      { name: "Paracetamol", genericName: "Paracetamol", strength: "120 mg/5 mL", dosageForm: "Syrup", url: "" },
+      { name: "Paracetamol", genericName: "Paracetamol", strength: "250 mg/5 mL", dosageForm: "Syrup", url: "" },
+      { name: "Paracetamol", genericName: "Paracetamol", strength: "500 mg", dosageForm: "Tablet", url: "" },
+      { name: "Ibuprofen", genericName: "Ibuprofen", strength: "100 mg/5 mL", dosageForm: "Suspension", url: "" },
+      { name: "Ibuprofen", genericName: "Ibuprofen", strength: "200 mg", dosageForm: "Tablet", url: "" },
+      { name: "Ibuprofen", genericName: "Ibuprofen", strength: "400 mg", dosageForm: "Tablet", url: "" },
+      { name: "Lidocaine", genericName: "Lidocaine", strength: "2 %", dosageForm: "Gel", url: "" },
+      { name: "Lidocaine", genericName: "Lidocaine", strength: "2 %", dosageForm: "Injection", url: "" },
+      { name: "Benzocaine", genericName: "Benzocaine", strength: "10 %", dosageForm: "Gel", url: "" },
+      { name: "Benzocaine", genericName: "Benzocaine", strength: "20 %", dosageForm: "Gel", url: "" },
+      { name: "Benzydamine", genericName: "Benzydamine", strength: "0.15 %", dosageForm: "Mouthwash", url: "" },
+      { name: "Miconazole", genericName: "Miconazole", strength: "2 %", dosageForm: "Oral Gel", url: "" },
+      { name: "Nystatin", genericName: "Nystatin", strength: "100,000 IU/mL", dosageForm: "Oral Suspension", url: "" },
+      { name: "Triamcinolone Acetonide", genericName: "Triamcinolone Acetonide", strength: "0.1 %", dosageForm: "Oral Paste", url: "" },
+      { name: "Povidone-Iodine", genericName: "Povidone-Iodine", strength: "1 %", dosageForm: "Gargle/Solution", url: "" },
+      { name: "Hydrogen Peroxide", genericName: "Hydrogen Peroxide", strength: "3 %", dosageForm: "Solution", url: "" },
+  ];
+  // hand-added medicines use brand_id 900000001+
+  await prisma.medicine.createMany({ data: rows.map((r, i) => ({ id: 900000001 + i, ...r })) });
   console.log("Seeded medicines");
 }
 

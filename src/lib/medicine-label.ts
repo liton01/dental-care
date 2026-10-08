@@ -16,6 +16,10 @@ export function medicineData(b: any) {
     company: b.company?.trim() || null,
     segment: b.segment?.trim() || null,
     priceAmount: num(b.priceAmount),
+    url: b.url?.trim() || "",
   };
 }
 
+
+// hand-added medicines get brand_id 900000001+, away from medex ids
+export const MANUAL_ID_START = 900000000;

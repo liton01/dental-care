@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { TableLoader } from "@/components/loaders";
 import { Card, Input, Label, Button, Modal, Pagination } from "@/components/ui";
-import { Plus, Search, X, Save, Pencil, Trash2, RotateCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, X, Save, Pencil, Trash2, RotateCw, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import toast from "react-hot-toast";
 
 const empty = {
@@ -13,6 +13,7 @@ const empty = {
     company: "",
     segment: "",
     priceAmount: "",
+    url: "",
 };
 
 export default function Medicines() {
@@ -96,6 +97,7 @@ export default function Medicines() {
             company: m.company || "",
             segment: m.segment || "",
             priceAmount: m.priceAmount != null ? String(m.priceAmount) : "",
+            url: m.url || "",
         });
         setModalOpen(true);
     };
@@ -244,7 +246,15 @@ export default function Medicines() {
                             {items.map((m) => (
                                 <tr key={m.id} className="border-b">
                                     <td className="p-3 font-medium">
-                                        {m.name}
+                                        {m.url ? (
+                                            <a href={m.url} target="_blank" rel="noreferrer" className="hover:text-teal-700 hover:underline" title="Open on medex">
+                                                {m.name}
+                                                <ExternalLink size={12} className="ml-1 inline text-slate-400" />
+                                            </a>
+                                        ) : (
+                                            m.name
+                                        )}
+                                        <div className="text-xs font-normal text-slate-400">#{m.id}</div>
                                     </td>
 
                                     <td className="p-3 max-w-[220px] truncate" title={m.genericName || ""}>
@@ -254,7 +264,7 @@ export default function Medicines() {
                                     <td className="p-3">{m.dosageForm || "-"}</td>
                                     <td className="p-3 max-w-[180px] truncate" title={m.company || ""}>{m.company || "-"}</td>
                                     <td className="p-3">{m.segment || "-"}</td>
-                                    <td className="p-3 text-right whitespace-nowrap">
+                                    <td className="p-3 text-right whitespace-nowrap" title={m.priceText || ""}>
                                         {m.priceAmount != null ? `৳ ${Number(m.priceAmount).toFixed(2)}` : "-"}
                                     </td>
 
@@ -407,6 +417,15 @@ export default function Medicines() {
                             type="number"
                             step="0.01"
                             min="0"
+                        />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                        <Label>Medex URL</Label>
+                        <Input
+                            value={f.url}
+                            onChange={(e) => setF({ ...f, url: e.target.value })}
+                            placeholder="https://medex.com.bd/brands/..."
                         />
                     </div>
 

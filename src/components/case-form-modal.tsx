@@ -44,6 +44,8 @@ export default function CaseFormModal({
 }) {
     const [patients, setPatients] = useState<any[]>([]);
     const [f, setF] = useState<any>(empty);
+    // patient shown read-only when the patient is fixed (edit / from patient page)
+    const [patientInfo, setPatientInfo] = useState<any>(null);
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
@@ -53,6 +55,19 @@ export default function CaseFormModal({
                 .then(setPatients);
         }
     }, [fixedPatientId]);
+
+    useEffect(() => {
+        if (!open) return;
+        const pid = caseData?.patientId || fixedPatientId;
+        if (caseData?.patient) setPatientInfo(caseData.patient);
+        else if (pid) {
+            setPatientInfo(null);
+            fetch(`/api/patients/${pid}`)
+                .then((r) => r.json())
+                .then((p) => p?.id && setPatientInfo(p))
+                .catch(() => {});
+        } else setPatientInfo(null);
+    }, [open, caseData, fixedPatientId]);
 
     useEffect(() => {
         if (!open) return;
@@ -162,6 +177,24 @@ export default function CaseFormModal({
                 onSubmit={save}
                 className="grid grid-cols-1 gap-3 sm:grid-cols-2"
             >
+                {(fixedPatientId || caseData) && (
+                    <div className="sm:col-span-2">
+                        <Label>Patient</Label>
+                        <div className="input flex items-center gap-2 bg-slate-50">
+                            {patientInfo ? (
+                                <>
+                                    <span className="font-medium">{patientInfo.name}</span>
+                                    <span className="text-sm text-slate-500">
+                                        ({patientInfo.patientNo}){patientInfo.phone ? ` · ${patientInfo.phone}` : ""}
+                                    </span>
+                                </>
+                            ) : (
+                                <span className="text-sm text-slate-400">Loading patient...</span>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {!fixedPatientId && !caseData && (
                     <div className="sm:col-span-2">
                         <Label required>Patient</Label>

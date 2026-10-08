@@ -3,13 +3,11 @@ import { bad, ok, parseBody, requireSession } from "@/lib/api";
 import { medicineData } from "@/lib/medicine-label";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const session = await requireSession();
-  if (!session) return bad("Unauthorized", 401);
+  if (!(await requireSession())) return bad("Unauthorized", 401);
   const b = await parseBody(req);
   if (!b?.name?.trim()) return bad("Brand Name is required.");
   return ok(await db.medicine.update({ where: { id: Number(params.id) }, data: {
     ...medicineData(b),
-    updatedBy: session.user?.email || session.user?.name || null,
   }}));
 }
 

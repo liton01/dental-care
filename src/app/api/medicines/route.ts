@@ -1,6 +1,6 @@
 import { db } from "@/lib/prisma";
 import { bad, ok, parseBody, requireSession } from "@/lib/api";
-import { medicineData } from "@/lib/medicine-label";
+import { medicineData, MANUAL_ID_START } from "@/lib/medicine-label";
 
 // Medicine master: ?q= searches brand, generic and company. With page/pageSize returns {items,total};
 // without, returns up to `limit` rows (default 30) for pickers.
@@ -48,12 +48,17 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await requireSession();
-  if (!session) return bad("Unauthorized", 401);
+  if (!(await requireSession())) return bad("Unauthorized", 401);
   const b = await parseBody(req);
   if (!b?.name?.trim()) return bad("Brand Name is required.");
-  return ok(await db.medicine.create({ data: {
-    ...medicineData(b),
-    createdBy: session.user?.email || session.user?.name || null,
-  }}), 201);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const max = await db.medicine.aggregate({ _max: { id: true } });
+    const id = Math.max(Number(max._max.id || 0), MANUAL_ID_START) + 1;
+    try {
+      return ok(await db.medicine.create({ data: { id, ...medicineData(b), priceText: b.priceAmount ? `৳ ${Number(b.priceAmount).toFixed(2)}` : null, scrapedAt: new Date() } }), 201);
+    } catch (e: any) {
+      if (e?.code !== "P2002") return bad("Save failed: " + (e?.message?.split("\n").pop() || "unknown error"), 500);
+    }
+  }
+  return bad("Could not assign a medicine id, try again.", 500);
 }
