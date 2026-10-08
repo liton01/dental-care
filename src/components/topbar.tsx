@@ -28,8 +28,8 @@ export default function Topbar({
 
     return (
         <header
-            className={`fixed right-0 top-0 z-10 flex h-16 items-center justify-between border-b bg-white px-4 transition-all duration-200 left-0 ${
-                collapsed ? "" : "lg:left-64"
+            className={`fixed right-0 top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 transition-all duration-200 left-0 ${
+                collapsed ? "" : "lg:left-[17rem]"
             }`}
         >
             <div className="flex items-center gap-3">

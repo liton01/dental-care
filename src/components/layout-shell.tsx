@@ -76,7 +76,7 @@ export default function LayoutShell({
 
             <main
                 className={`min-h-screen pt-16 transition-all duration-200 ${
-                    collapsed ? "" : "lg:ml-64"
+                    collapsed ? "" : "lg:ml-[17rem]"
                 }`}
             >
                 <div className="flex min-h-[calc(100vh-4rem)] flex-col p-4 md:p-6">
