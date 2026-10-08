@@ -11,7 +11,7 @@ export default function AuthShell({ subtitle, children }: { subtitle: string; ch
                 </div>
                 {children}
                 <p className="mt-5 text-center text-xs text-slate-400">
-                    © {new Date().getFullYear()} ThinkTach. All Rights Reserved. | Powered by ThinkTach
+                    © {new Date().getFullYear()} ThinkTech. All Rights Reserved. | Powered by ThinkTech
                 </p>
             </Card>
         </div>
