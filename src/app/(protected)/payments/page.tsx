@@ -5,6 +5,7 @@ import { Card, Input, Label, Button, Modal, SearchSelect, Pagination } from "@/c
 import { Plus, X, Save, Pencil, Trash2, RotateCw, FileCheck2, Smartphone } from "lucide-react";
 import toast from "react-hot-toast";
 import { useCan } from "@/components/permissions-context";
+import { tk } from "@/components/agreement-panel";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -26,6 +27,7 @@ const WALLETS = ["bKash", "Nagad", "Rocket"];
 
 const empty = {
     patientId: "",
+    agreementId: "",
     caseHistoryId: "",
     description: "",
     amount: "",
@@ -48,6 +50,27 @@ export default function BillCollection() {
     const [editing, setEditing] = useState<number | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [patientCases, setPatientCases] = useState<any[]>([]);
+
+    // service charge agreements of the patient chosen in the modal
+    const [agreements, setAgreements] = useState<any[]>([]);
+    useEffect(() => {
+        if (!f.patientId) {
+            setAgreements([]);
+            return;
+        }
+        fetch(`/api/patients/${f.patientId}/agreements`)
+            .then((r) => r.json())
+            .then((d) => {
+                const list = Array.isArray(d) ? d : [];
+                setAgreements(list);
+                // default to the running agreement
+                setF((cur: any) => {
+                    if (cur.agreementId) return cur;
+                    const run = list.find((a: any) => a.isClosed === "N");
+                    return run ? { ...cur, agreementId: String(run.id) } : cur;
+                });
+            });
+    }, [f.patientId]);
 
     // cases of the patient chosen in the modal
     useEffect(() => {
@@ -139,6 +162,7 @@ export default function BillCollection() {
             setF({
                 ...empty,
                 patientId: pid,
+                agreementId: "",
                 caseHistoryId: sp.get("caseId") || "",
                 paymentDate: toYMD(new Date()),
             });
@@ -166,6 +190,7 @@ export default function BillCollection() {
         setEditing(p.id);
         setF({
             patientId: String(p.patientId),
+            agreementId: p.agreementId ? String(p.agreementId) : "",
             caseHistoryId: p.caseHistoryId ? String(p.caseHistoryId) : "",
             description: p.description || "",
             amount: String(p.amount),
@@ -594,11 +619,44 @@ export default function BillCollection() {
                             }))}
                             value={f.patientId}
                             onChange={(v) =>
-                                setF({ ...f, patientId: v, caseHistoryId: "" })
+                                setF({ ...f, patientId: v, caseHistoryId: "", agreementId: "" })
                             }
                             placeholder="Search patient by name or phone..."
                             required
                         />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                        <Label required={agreements.some((a) => a.isClosed === "N")}>Service Charge Agreement</Label>
+
+                        <select
+                            className="input"
+                            value={f.agreementId}
+                            onChange={(e) => setF({ ...f, agreementId: e.target.value })}
+                            disabled={!f.patientId}
+                            required={agreements.some((a) => a.isClosed === "N")}
+                        >
+                            <option value="">
+                                {!f.patientId
+                                    ? "Select a patient first"
+                                    : agreements.some((a) => a.isClosed === "N")
+                                    ? "Select agreement"
+                                    : "No running agreement"}
+                            </option>
+                            {agreements
+                                .filter((a) => a.isClosed === "N" || String(a.id) === f.agreementId)
+                                .map((a) => (
+                                    <option key={a.id} value={a.id}>
+                                        #{a.id} · Total Service Charge {tk(a.serviceChargeAmount)} · Dues {tk(a.dues)}
+                                        {a.isClosed === "Y" ? " (closed)" : ""}
+                                    </option>
+                                ))}
+                        </select>
+                        {f.patientId && !agreements.some((a) => a.isClosed === "N") && (
+                            <p className="mt-1 text-xs text-amber-700">
+                                This patient has no running agreement. Open one from the patient&apos;s edit form to track dues.
+                            </p>
+                        )}
                     </div>
 
                     <div className="sm:col-span-2">

@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { TableLoader } from "@/components/loaders";
 import { Card, Input, Label, Button, Textarea, Modal, Pagination } from "@/components/ui";
-import { Plus, Search, X, UserPlus, Save, Pencil, ChevronLeft, ChevronRight, FolderOpen, Trash2 } from "lucide-react";
+import { Plus, Search, X, UserPlus, Save, Pencil, ChevronLeft, ChevronRight, FolderOpen, Trash2, ReceiptText, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useCan } from "@/components/permissions-context";
+import AgreementPanel, { tk, closeAgreement, collectionHistoryUrl } from "@/components/agreement-panel";
 import PhotoUpload from "@/components/photo-upload";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -51,7 +52,8 @@ const empty = {
     address: "",
     gender: "",
     bloodGroup: "",
-    projectedCharge: "",
+    serviceCharge: "",
+    agreementDetails: "",
     photoUrl: "",
     dateOfBirth: "",
     admissionDate: "",
@@ -67,11 +69,15 @@ const fields: { key: string; label: string; type: string }[] = [
     { key: "gender", label: "Gender", type: "radio" },
     { key: "bloodGroup", label: "Blood Group", type: "select" },
     { key: "admissionDate", label: "Admission Date", type: "date" },
-    { key: "projectedCharge", label: "Projected Charge", type: "number" },
+    { key: "serviceCharge", label: "Total Service Charge", type: "number" },
     { key: "photoUrl", label: "Patient Photo", type: "photo" },
     { key: "address", label: "Address", type: "textarea" },
+    { key: "agreementDetails", label: "Agreement Details", type: "textarea" },
     { key: "notes", label: "Remarks", type: "textarea" },
 ];
+
+// agreement fields are only typed for a new patient; editing uses the agreement panel
+const NEW_ONLY = ["serviceCharge", "agreementDetails"];
 
 const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -191,7 +197,6 @@ export default function Patients() {
             ...p,
             age: p.age || "",
             bloodGroup: p.bloodGroup || "",
-            projectedCharge: String(p.projectedCharge ?? ""),
             photoUrl: p.photoUrl || "",
             dateOfBirth: p.dateOfBirth?.slice(0, 10) || "",
             admissionDate: p.admissionDate?.slice(0, 10) || "",
@@ -208,11 +213,8 @@ export default function Patients() {
     const save = async (e: any) => {
         e.preventDefault();
 
-        if (!Number(form.projectedCharge)) {
-            toast("Projected Charge is not set — saving with 0.", {
-                icon: "⚠️",
-            });
-            if (!confirm("Projected Charge is empty and will be saved as 0. Continue?"))
+        if (!editing && !Number(form.serviceCharge)) {
+            if (!confirm("Total Service Charge is empty, so no agreement will be opened. Continue?"))
                 return;
         }
 
@@ -389,6 +391,10 @@ export default function Patients() {
                                     Cases
                                 </th>
 
+                                <th className="p-3 text-right whitespace-nowrap">
+                                    Total Service Charge
+                                </th>
+
                                 <th className="p-3"></th>
                             </tr>
                         </thead>
@@ -444,7 +450,38 @@ export default function Patients() {
                                         {p._count.caseHistories}
                                     </td>
 
-                                    <td className="p-3">
+                                    <td className="p-3 text-right whitespace-nowrap">
+                                        {p.agreement ? (
+                                            <>
+                                                <div className="font-semibold">{tk(p.agreement.serviceChargeAmount)}</div>
+                                                <div className="text-xs text-slate-500">Dues {tk(p.agreement.dues)}</div>
+                                            </>
+                                        ) : (
+                                            <span className="text-xs text-slate-400">No agreement</span>
+                                        )}
+                                    </td>
+
+                                    <td className="p-3 whitespace-nowrap">
+                                        <button
+                                            className="rounded-lg p-1.5 text-indigo-700 hover:bg-indigo-50"
+                                            onClick={() => router.push(collectionHistoryUrl(p.id))}
+                                            title="Collection history"
+                                            aria-label="Collection history"
+                                        >
+                                            <ReceiptText size={16} />
+                                        </button>
+
+                                        {p.agreement && can("PATIENT.E") && (
+                                            <button
+                                                className="rounded-lg p-1.5 text-amber-700 hover:bg-amber-50"
+                                                onClick={async () => (await closeAgreement(p.agreement)) && load()}
+                                                title="Close agreement"
+                                                aria-label="Close agreement"
+                                            >
+                                                <Lock size={16} />
+                                            </button>
+                                        )}
+
                                         <button
                                             className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
                                             onClick={() =>
@@ -482,11 +519,11 @@ export default function Patients() {
                                     </td>
                                 </tr>
                             ))}
-                            {loading && items.length === 0 && <TableLoader colSpan={11} />}
+                            {loading && items.length === 0 && <TableLoader colSpan={12} />}
 
                             {!loading && items.length === 0 && (
                                 <tr>
-                                    <td colSpan={11} className="p-8 text-center text-slate-500">
+                                    <td colSpan={12} className="p-8 text-center text-slate-500">
                                         No patients found
                                     </td>
                                 </tr>
@@ -536,7 +573,7 @@ export default function Patients() {
                 onClose={closeModal}
             >
                 <form onSubmit={save} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {fields.map((f) => (
+                    {fields.filter((f) => !(editing && NEW_ONLY.includes(f.key))).map((f) => (
                         <div
                             key={f.key}
                             className={
@@ -671,6 +708,12 @@ export default function Patients() {
                             )}
                         </div>
                     ))}
+
+                    {editing && (
+                        <div className="sm:col-span-2">
+                            <AgreementPanel patientId={editing} canEdit={can("PATIENT.E")} />
+                        </div>
+                    )}
 
                     <div className="flex items-center justify-between gap-2 pt-2 sm:col-span-2">
                         <div>

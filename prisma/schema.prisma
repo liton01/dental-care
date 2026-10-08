@@ -60,7 +60,6 @@ model Patient {
   dateOfBirth    DateTime?
   gender         Gender?
   bloodGroup     String?
-  projectedCharge Decimal        @default(0) @db.Decimal(12, 2)
   admissionDate  DateTime        @default(now())
   phone          String
   email          String?
@@ -75,6 +74,7 @@ model Patient {
   payments       Payment[]
   appointments   Appointment[]
   notifications  Notification[]
+  agreements     PatientXAgreement[]
 }
 
 model CaseHistory {
@@ -145,9 +145,33 @@ model Payment {
   bkashPaymentId String?       @db.VarChar(50)
   caseHistoryId  Int?
   caseHistory    CaseHistory?  @relation(fields: [caseHistoryId], references: [id], onDelete: SetNull)
+  agreementId    Int?
+  agreement      PatientXAgreement? @relation(fields: [agreementId], references: [id], onDelete: SetNull)
   patient        Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
   voucher        AccVoucher?
   @@index([patientId, paymentDate])
+  @@index([agreementId])
+}
+
+// Service charge agreement of a patient. Only one may be open (is_closed = 'N') at a time;
+// bill collections are linked to it. Created by prisma/sql/patient_x_agreement.sql.
+model PatientXAgreement {
+  id                  Int       @id @default(autoincrement())
+  patientId           Int       @map("patient_id")
+  serviceChargeAmount Decimal   @default(0) @map("service_charge_amount") @db.Decimal(12, 2)
+  isClosed            String    @default("N") @map("is_closed") @db.Char(1)
+  openDate            DateTime  @default(now()) @map("open_date")
+  closedDate          DateTime? @map("closed_date")
+  agreementDetails    String?   @map("agreement_details") @db.VarChar(1000)
+  createdDate         DateTime  @default(now()) @map("created_date")
+  createdBy           String?   @map("created_by") @db.VarChar(150)
+  updatedDate         DateTime? @map("updated_date")
+  updatedBy           String?   @map("updated_by") @db.VarChar(150)
+  patient             Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  payments            Payment[]
+
+  @@index([patientId, isClosed])
+  @@map("patient_x_agreement")
 }
 
 model Appointment {
