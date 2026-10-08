@@ -75,7 +75,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
               <View style={styles.tr} key={i}>
                 <Text style={styles.cMed}>
                   {i + 1}. {m.medicine.name}
-                  {m.medicine.strength ? ` ${m.medicine.strength} ${m.medicine.unit || ""}` : ""}
+                  {m.medicine.strength ? ` ${m.medicine.strength}` : ""}
                   {m.medicine.dosageForm ? ` (${m.medicine.dosageForm})` : ""}
                 </Text>
                 <Text style={styles.cDose}>{m.dosage}</Text>

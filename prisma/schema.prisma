@@ -392,20 +392,29 @@ model AccSubClass {
   @@map("acc_sub_class")
 }
 
+// Medicine master (medex brand list). Created from the old `medicines` table by
+// prisma/sql/medicine_replace.sql.
 model Medicine {
-  id               Int       @id @default(autoincrement())
-  name             String    @db.VarChar(150)
-  strength         String?   @db.VarChar(30)
-  unit             String?   @db.VarChar(30)
-  dosageForm       String?   @db.VarChar(50)
-  manufacturerType String?   @db.VarChar(50)
-  treatmentUse     String?   @db.VarChar(200)
-  createdBy        String?   @db.VarChar(150)
-  createdDate      DateTime  @default(now())
-  updatedBy        String?   @db.VarChar(150)
-  updatedDate      DateTime? @updatedAt
+  id                Int       @id @default(autoincrement())
+  brandId           Int?      @map("brand_id")
+  name              String    @map("brand_name")
+  dosageForm        String?   @map("dosage_form")
+  segment           String?
+  strength          String?
+  genericName       String?   @map("generic_name")
+  company           String?
+  priceText         String?   @map("price_text")
+  priceAmount       Decimal?  @map("price_amount") @db.Decimal(12, 2)
+  url               String?
+  scrapedAt         DateTime? @map("scraped_at") @db.Timestamptz(6)
+  createdBy         String?   @map("created_by") @db.VarChar(150)
+  createdDate       DateTime  @default(now()) @map("created_date")
+  updatedBy         String?   @map("updated_by") @db.VarChar(150)
+  updatedDate       DateTime? @updatedAt @map("updated_date")
   prescriptionItems PrescriptionItem[]
 
+  @@index([name])
+  @@index([genericName])
   @@map("medicine")
 }
 
@@ -443,4 +452,22 @@ model AccVoucherDetail {
   lineNarration  String?      @db.VarChar(200)
 
   @@map("acc_voucher_detail")
+}
+
+// Review list written by prisma/sql/medicine_replace.sql: which old medicine
+// went to which new one. Not used by the app.
+model MedicineMigrationMap {
+  oldId        Int       @id @map("old_id")
+  oldName      String?   @map("old_name")
+  oldStrength  String?   @map("old_strength")
+  oldForm      String?   @map("old_form")
+  usedInCases  Int?      @map("used_in_cases")
+  newId        Int?      @map("new_id")
+  newName      String?   @map("new_name")
+  newStrength  String?   @map("new_strength")
+  newForm      String?   @map("new_form")
+  matchType    String?   @map("match_type")
+  migratedAt   DateTime? @default(now()) @map("migrated_at")
+
+  @@map("medicine_migration_map")
 }

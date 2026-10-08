@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Input, Label, Button, Textarea, Modal, SearchSelect } from "@/components/ui";
+import MedicinePicker from "@/components/medicine-picker";
+import { medicineLabel } from "@/lib/medicine-label";
 import { X, Save, Plus, Trash2, Printer } from "lucide-react";
 import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
@@ -41,7 +43,6 @@ export default function CaseFormModal({
     fixedPatientId?: string;
 }) {
     const [patients, setPatients] = useState<any[]>([]);
-    const [medicineList, setMedicineList] = useState<any[]>([]);
     const [f, setF] = useState<any>(empty);
     const [saving, setSaving] = useState(false);
 
@@ -51,9 +52,6 @@ export default function CaseFormModal({
                 .then((r) => r.json())
                 .then(setPatients);
         }
-        fetch("/api/medicines")
-            .then((r) => r.json())
-            .then((d) => setMedicineList(Array.isArray(d) ? d : []));
     }, [fixedPatientId]);
 
     useEffect(() => {
@@ -86,6 +84,7 @@ export default function CaseFormModal({
                             ...prev,
                             medicines: items.map((m: any) => ({
                                 medicineId: String(m.medicineId),
+                                label: medicineLabel(m.medicine),
                                 dosage: m.dosage === "-" ? "" : m.dosage,
                                 duration: m.duration === "-" ? "" : m.duration,
                                 instructions: m.instructions || "",
@@ -341,14 +340,14 @@ export default function CaseFormModal({
                                 </button>
                             </div>
 
-                            <SearchSelect
-                                options={medicineList.map((md: any) => ({
-                                    value: String(md.id),
-                                    label: `${md.name}${md.strength ? ` ${md.strength} ${md.unit || ""}` : ""}${md.dosageForm ? ` (${md.dosageForm})` : ""}`,
-                                }))}
+                            <MedicinePicker
                                 value={m.medicineId}
-                                onChange={(v) => setMed(i, "medicineId", v)}
-                                placeholder="Search medicine..."
+                                label={m.label || ""}
+                                onChange={(id, label) => {
+                                    const medicines = [...f.medicines];
+                                    medicines[i] = { ...medicines[i], medicineId: id, label };
+                                    setF({ ...f, medicines });
+                                }}
                                 required
                             />
 
