@@ -14,6 +14,9 @@ const empty = {
     segment: "",
     priceAmount: "",
     url: "",
+    dosage: "",
+    duration: "",
+    instructions: "",
 };
 
 export default function Medicines() {
@@ -98,6 +101,9 @@ export default function Medicines() {
             segment: m.segment || "",
             priceAmount: m.priceAmount != null ? String(m.priceAmount) : "",
             url: m.url || "",
+            dosage: m.dosage || "",
+            duration: m.duration || "",
+            instructions: m.instructions || "",
         });
         setModalOpen(true);
     };
@@ -238,6 +244,7 @@ export default function Medicines() {
                                 <th className="p-3">Company</th>
                                 <th className="p-3">Segment</th>
                                 <th className="p-3 text-right">Price</th>
+                                <th className="p-3">Default Directions</th>
                                 <th className="p-3">Action</th>
                             </tr>
                         </thead>
@@ -267,6 +274,9 @@ export default function Medicines() {
                                     <td className="p-3 text-right whitespace-nowrap" title={m.priceText || ""}>
                                         {m.priceAmount != null ? `৳ ${Number(m.priceAmount).toFixed(2)}` : "-"}
                                     </td>
+                                    <td className="p-3 text-xs text-slate-600">
+                                        {[m.dosage, m.duration, m.instructions].filter(Boolean).join(" · ") || "-"}
+                                    </td>
 
                                     <td className="p-3 whitespace-nowrap">
                                         <button
@@ -288,11 +298,11 @@ export default function Medicines() {
                                 </tr>
                             ))}
 
-                            {loading && items.length === 0 && <TableLoader colSpan={8} />}
+                            {loading && items.length === 0 && <TableLoader colSpan={9} />}
 
                             {!loading && items.length === 0 && (
                                 <tr>
-                                    <td colSpan={8} className="p-8 text-center text-slate-500">
+                                    <td colSpan={9} className="p-8 text-center text-slate-500">
                                         No medicines found
                                     </td>
                                 </tr>
@@ -418,6 +428,29 @@ export default function Medicines() {
                             step="0.01"
                             min="0"
                         />
+                    </div>
+
+                    <div className="sm:col-span-2 border-t pt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Default directions (filled in when picked on a case)
+                    </div>
+
+                    <div>
+                        <Label>Dosage</Label>
+                        <Input
+                            value={f.dosage}
+                            onChange={(e) => setF({ ...f, dosage: e.target.value.replace(/ +/g, "+") })}
+                            placeholder="e.g. 1+0+1"
+                        />
+                    </div>
+
+                    <div>
+                        <Label>Duration</Label>
+                        <Input value={f.duration} onChange={(e) => setF({ ...f, duration: e.target.value })} placeholder="e.g. 7 days" />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                        <Label>Instructions</Label>
+                        <Input value={f.instructions} onChange={(e) => setF({ ...f, instructions: e.target.value })} placeholder="e.g. after meal" />
                     </div>
 
                     <div className="sm:col-span-2">

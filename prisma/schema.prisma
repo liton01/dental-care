@@ -407,6 +407,10 @@ model Medicine {
   priceAmount       Decimal?  @map("price_amount") @db.Decimal(12, 2)
   url               String
   scrapedAt         DateTime  @default(now()) @map("scraped_at") @db.Timestamptz(6)
+  // doctor's usual directions, filled in when the medicine is picked on a case
+  dosage            String?
+  duration          String?
+  instructions      String?
   prescriptionItems PrescriptionItem[]
 
   @@map("medicine")

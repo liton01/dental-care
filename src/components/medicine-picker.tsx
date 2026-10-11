@@ -13,7 +13,7 @@ export default function MedicinePicker({
 }: {
     value: string;
     label: string;
-    onChange: (id: string, label: string) => void;
+    onChange: (id: string, label: string, medicine?: any) => void;
     required?: boolean;
 }) {
     const [open, setOpen] = useState(false);
@@ -74,7 +74,7 @@ export default function MedicinePicker({
                                     String(m.id) === value ? "bg-teal-50 font-medium text-teal-700" : ""
                                 }`}
                                 onClick={() => {
-                                    onChange(String(m.id), medicineLabel(m));
+                                    onChange(String(m.id), medicineLabel(m), m);
                                     setOpen(false);
                                 }}
                             >

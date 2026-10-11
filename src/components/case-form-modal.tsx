@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Input, Label, Button, Textarea, Modal, SearchSelect } from "@/components/ui";
 import MedicinePicker from "@/components/medicine-picker";
-import { medicineLabel } from "@/lib/medicine-label";
+import { medicineLabel, dir } from "@/lib/medicine-label";
 import { X, Save, Plus, Trash2, Printer } from "lucide-react";
 import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
@@ -100,6 +100,11 @@ export default function CaseFormModal({
                             medicines: items.map((m: any) => ({
                                 medicineId: String(m.medicineId),
                                 label: medicineLabel(m.medicine),
+                                defaults: {
+                                    dosage: dir(m.medicine?.dosage),
+                                    duration: dir(m.medicine?.duration),
+                                    instructions: dir(m.medicine?.instructions),
+                                },
                                 dosage: m.dosage === "-" ? "" : m.dosage,
                                 duration: m.duration === "-" ? "" : m.duration,
                                 instructions: m.instructions || "",
@@ -153,6 +158,33 @@ export default function CaseFormModal({
         }
 
         toast.success(caseData ? "Case updated" : "Case history saved");
+
+        // directions that differ from the medicine's saved defaults
+        const changed = new Map<string, any>();
+        for (const m of f.medicines) {
+            if (!m.medicineId) continue;
+            const d = m.defaults || { dosage: "", duration: "", instructions: "" };
+            const now = { dosage: dir(m.dosage), duration: dir(m.duration), instructions: dir(m.instructions) };
+            const empty = !now.dosage && !now.duration && !now.instructions;
+            if (empty) continue;
+            if (now.dosage !== d.dosage || now.duration !== d.duration || now.instructions !== d.instructions)
+                changed.set(m.medicineId, { id: m.medicineId, label: m.label, ...now });
+        }
+        if (changed.size) {
+            const list = Array.from(changed.values());
+            const lines = list
+                .map((x) => `• ${x.label}: ${[x.dosage, x.duration, x.instructions].filter(Boolean).join(" | ")}`)
+                .join("\n");
+            if (confirm(`Save these as the default dosage, duration and instructions for next time?\n\n${lines}`)) {
+                const r = await fetch("/api/medicines/defaults", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ items: list }),
+                });
+                if (r.ok) toast.success(`Defaults saved for ${list.length} medicine${list.length === 1 ? "" : "s"}`);
+                else toast.error((await r.json().catch(() => null))?.error || "Failed to save medicine defaults.");
+            }
+        }
 
         if (print && saved?.id) {
             window.open(`/api/cases/${saved.id}/prescription/pad`, "_blank");
@@ -376,9 +408,15 @@ export default function CaseFormModal({
                             <MedicinePicker
                                 value={m.medicineId}
                                 label={m.label || ""}
-                                onChange={(id, label) => {
+                                onChange={(id, label, md) => {
                                     const medicines = [...f.medicines];
-                                    medicines[i] = { ...medicines[i], medicineId: id, label };
+                                    // fill the doctor's usual directions saved on the medicine
+                                    const defaults = {
+                                        dosage: dir(md?.dosage),
+                                        duration: dir(md?.duration),
+                                        instructions: dir(md?.instructions),
+                                    };
+                                    medicines[i] = { ...medicines[i], medicineId: id, label, defaults, ...defaults };
                                     setF({ ...f, medicines });
                                 }}
                                 required

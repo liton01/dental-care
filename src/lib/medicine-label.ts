@@ -17,9 +17,15 @@ export function medicineData(b: any) {
     segment: b.segment?.trim() || null,
     priceAmount: num(b.priceAmount),
     url: b.url?.trim() || "",
+    dosage: b.dosage?.trim() || null,
+    duration: b.duration?.trim() || null,
+    instructions: b.instructions?.trim() || null,
   };
 }
 
 
 // hand-added medicines get brand_id 900000001+, away from medex ids
 export const MANUAL_ID_START = 900000000;
+
+// directions as stored/compared: trimmed, empty -> ""
+export const dir = (v: any) => String(v ?? "").trim();
