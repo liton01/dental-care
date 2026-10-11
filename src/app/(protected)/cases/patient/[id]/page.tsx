@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { BlockLoader } from "@/components/loaders";
 import { useParams, useRouter } from "next/navigation";
 import { Card, Button } from "@/components/ui";
-import { Plus, ArrowLeft, Pencil, Trash2, Printer } from "lucide-react";
+import { Plus, ArrowLeft, Pencil, Trash2, Printer, ReceiptText, Wallet } from "lucide-react";
 import CaseFormModal from "@/components/case-form-modal";
 import toast from "react-hot-toast";
 import { useCan } from "@/components/permissions-context";
@@ -92,6 +92,26 @@ export default function PatientCaseHistory() {
                         <ArrowLeft size={16} className="mr-1.5" />
                         Back to List
                     </Button>
+
+                    <Button
+                        variant="secondary"
+                        onClick={() => router.push(`/accounting/reports/bill-collections?patientId=${id}`)}
+                        title="Collection history of this patient"
+                    >
+                        <ReceiptText size={16} className="mr-1.5" />
+                        Collection History
+                    </Button>
+
+                    {can("PAYMENT.C") && (
+                        <Button
+                            variant="secondary"
+                            onClick={() => router.push(`/payments?patientId=${id}`)}
+                            title="New bill collection for this patient"
+                        >
+                            <Wallet size={16} className="mr-1.5" />
+                            Bill Collection
+                        </Button>
+                    )}
 
                     {can("CASE.C") && (
                         <Button onClick={openNew}>

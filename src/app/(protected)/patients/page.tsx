@@ -243,8 +243,8 @@ export default function Patients() {
         load();
 
         if (!editing && saved?.id) {
-            if (confirm("Patient added. Go to case history now?")) {
-                router.push(`/cases/patient/${saved.id}`);
+            if (confirm("Patient added. Go to Bill Collection now?")) {
+                router.push(`/payments?patientId=${saved.id}`);
             }
         }
     };
