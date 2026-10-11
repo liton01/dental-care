@@ -219,8 +219,13 @@ export default function BillCollection() {
         setF(empty);
     };
 
-    const save = async (e: any) => {
+    // finalizeAfter: also create the draft journal voucher right after saving
+    const save = async (e: any, finalizeAfter = false) => {
         e.preventDefault();
+        if (finalizeAfter && totalPaid <= 0) {
+            toast.error("Total Paid must be more than 0 to finalize.");
+            return;
+        }
 
         if (f.method === "MOBILE_BANKING") {
             if (!f.walletProvider) {
@@ -245,13 +250,21 @@ export default function BillCollection() {
             }
         );
 
+        const saved = await res.json().catch(() => null);
         if (!res.ok) {
-            const d = await res.json().catch(() => null);
-            toast.error(d?.error || "Failed to save transaction.");
+            toast.error(saved?.error || "Failed to save transaction.");
             return;
         }
 
         toast.success(editing ? "Transaction updated" : "Transaction saved");
+
+        if (finalizeAfter && saved?.id) {
+            const r = await fetch(`/api/payments/${saved.id}/finalize`, { method: "POST" });
+            const d = await r.json().catch(() => null);
+            if (r.ok) toast.success(`Draft journal voucher ${d?.voucherNo || ""} created`);
+            else toast.error(d?.error || "Saved, but finalize failed.", { duration: 7000 });
+        }
+
         closeModal();
         load();
     };
@@ -904,6 +917,20 @@ export default function BillCollection() {
                         <Button type="submit">
                             <Save size={16} className="mr-1.5" />
                             {editing ? "Update" : "Save Transaction"}
+                        </Button>
+
+                        <Button
+                            type="button"
+                            className="!bg-emerald-600 hover:!bg-emerald-700"
+                            onClick={(e) => {
+                                const form = (e.currentTarget as HTMLButtonElement).form;
+                                if (form && !form.reportValidity()) return;
+                                save(e, true);
+                            }}
+                            title="Save and create the draft journal voucher"
+                        >
+                            <FileCheck2 size={16} className="mr-1.5" />
+                            {editing ? "Update & Finalize" : "Save & Finalize"}
                         </Button>
                     </div>
                 </form>
