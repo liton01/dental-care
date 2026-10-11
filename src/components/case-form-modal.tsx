@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Input, Label, Button, Textarea, Modal, SearchSelect } from "@/components/ui";
 import MedicinePicker from "@/components/medicine-picker";
+import OePicker from "@/components/oe-picker";
 import { medicineLabel, dir } from "@/lib/medicine-label";
 import { X, Save, Plus, Trash2, Printer } from "lucide-react";
 import toast from "react-hot-toast";
@@ -46,6 +47,9 @@ export default function CaseFormModal({
     const [f, setF] = useState<any>(empty);
     // patient shown read-only when the patient is fixed (edit / from patient page)
     const [patientInfo, setPatientInfo] = useState<any>(null);
+    // O/E master list; remarks typed after picking an O/E update its default remarks
+    const [oeList, setOeList] = useState<any[]>([]);
+    const [remarksTouched, setRemarksTouched] = useState(false);
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
@@ -55,6 +59,15 @@ export default function CaseFormModal({
                 .then(setPatients);
         }
     }, [fixedPatientId]);
+
+    useEffect(() => {
+        if (!open) return;
+        setRemarksTouched(false);
+        fetch("/api/oral-exam-diseases")
+            .then((r) => r.json())
+            .then((d) => setOeList(Array.isArray(d) ? d : []))
+            .catch(() => {});
+    }, [open]);
 
     useEffect(() => {
         if (!open) return;
@@ -158,6 +171,18 @@ export default function CaseFormModal({
         }
 
         toast.success(caseData ? "Case updated" : "Case history saved");
+
+        // remarks changed for a listed O/E: save them as that O/E's default remarks
+        const oeRow = oeList.find((o) => o.diseaseName.trim().toLowerCase() === String(f.oe || "").trim().toLowerCase());
+        if (oeRow && remarksTouched && dir(f.details) !== dir(oeRow.remarks)) {
+            const r = await fetch(`/api/oral-exam-diseases/${oeRow.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ remarks: f.details }),
+            });
+            if (r.ok) toast.success(`Default remarks updated for "${oeRow.diseaseName}"`);
+            else toast.error((await r.json().catch(() => null))?.error || "Failed to update O/E remarks.");
+        }
 
         // directions that differ from the medicine's saved defaults
         const changed = new Map<string, any>();
@@ -298,10 +323,15 @@ export default function CaseFormModal({
                 <div>
                     <Label>O/E</Label>
 
-                    <Input
+                    <OePicker
                         value={f.oe}
-                        onChange={(e) => setF({ ...f, oe: e.target.value })}
-                        placeholder="On examination findings"
+                        options={oeList}
+                        onChange={(text) => setF({ ...f, oe: text })}
+                        onPick={(d) => {
+                            // fill the case Remarks from the O/E default remarks
+                            setF({ ...f, oe: d.diseaseName, details: d.remarks || f.details });
+                            setRemarksTouched(false);
+                        }}
                     />
                 </div>
 
@@ -461,9 +491,10 @@ export default function CaseFormModal({
 
                     <Textarea
                         value={f.details}
-                        onChange={(e) =>
-                            setF({ ...f, details: e.target.value })
-                        }
+                        onChange={(e) => {
+                            setF({ ...f, details: e.target.value });
+                            setRemarksTouched(true);
+                        }}
                     />
                 </div>
 

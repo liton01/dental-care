@@ -483,3 +483,17 @@ model PasswordResetToken {
   @@index([userId])
   @@map("password_reset_token")
 }
+
+// O/E (oral examination) findings master, with default remarks. Table created by hand;
+// ids are assigned by the app (max + 1). created_by / last_updated_by hold the user id.
+model OralExamDisease {
+  id              Int       @id
+  diseaseName     String    @unique @map("disease_name") @db.VarChar(150)
+  createdBy       Int?      @map("created_by")
+  createdDate     DateTime  @default(now()) @map("created_date") @db.Timestamp(6)
+  lastUpdatedBy   Int?      @map("last_updated_by")
+  lastUpdatedDate DateTime? @map("last_updated_date") @db.Timestamp(6)
+  remarks         String?   @db.VarChar(250)
+
+  @@map("oral_exam_disease")
+}

@@ -46,7 +46,7 @@ const sections: Section[] = [
         title: "Settings",
         icon: Settings,
         match: ["/settings"],
-        groups: [{ title: "", links: [["Medicines", "/settings/medicines"]] }],
+        groups: [{ title: "", links: [["Medicines", "/settings/medicines"], ["Oral Examination (O/E)", "/settings/oral-exam"]] }],
     },
     {
         title: "Security",
