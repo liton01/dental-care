@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Input, Label, Button, Textarea, Modal, SearchSelect } from "@/components/ui";
 import MedicinePicker from "@/components/medicine-picker";
 import OePicker from "@/components/oe-picker";
+import ToothChart from "@/components/tooth-chart";
 import { medicineLabel, dir } from "@/lib/medicine-label";
 import { X, Save, Plus, Trash2, Printer } from "lucide-react";
 import toast from "react-hot-toast";
@@ -307,6 +308,7 @@ export default function CaseFormModal({
                         onChange={(e) =>
                             setF({ ...f, toothNumber: e.target.value })
                         }
+                        placeholder="Tick teeth below or type"
                     />
                 </div>
 
@@ -352,6 +354,11 @@ export default function CaseFormModal({
                         minDate={new Date()}
                         isClearable
                     />
+                </div>
+
+                <div className="sm:col-span-2">
+                    <Label>Tooth Selection</Label>
+                    <ToothChart value={f.toothNumber} onChange={(text) => setF({ ...f, toothNumber: text })} />
                 </div>
 
                 <div className="sm:col-span-2">
