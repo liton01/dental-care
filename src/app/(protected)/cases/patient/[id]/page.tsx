@@ -47,6 +47,12 @@ export default function PatientCaseHistory() {
             .then((r) => r.json())
             .then(setPatient);
         load();
+        // opened from New Patient: show the New Case History popup straight away
+        if (new URLSearchParams(window.location.search).get("new") === "1") {
+            setEditingCase(null);
+            setModalOpen(true);
+            router.replace(`/cases/patient/${id}`);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 

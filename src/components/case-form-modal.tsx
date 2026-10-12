@@ -137,6 +137,14 @@ export default function CaseFormModal({
         }
     }, [open, caseData, fixedPatientId]);
 
+    // new case: O/E defaults to Pulpitis (with its default remarks)
+    useEffect(() => {
+        if (!open || caseData || !oeList.length) return;
+        const d = oeList.find((x: any) => String(x.diseaseName).trim().toLowerCase() === "pulpitis");
+        if (!d) return;
+        setF((prev: any) => (prev.oe ? prev : { ...prev, oe: d.diseaseName, details: prev.details || d.remarks || "" }));
+    }, [open, caseData, oeList]);
+
     const setMed = (i: number, k: string, v: string) => {
         const medicines = [...f.medicines];
         medicines[i] = { ...medicines[i], [k]: v };
@@ -305,10 +313,9 @@ export default function CaseFormModal({
 
                     <Input
                         value={f.toothNumber}
-                        onChange={(e) =>
-                            setF({ ...f, toothNumber: e.target.value })
-                        }
-                        placeholder="Tick teeth below or type"
+                        readOnly
+                        className="bg-slate-50"
+                        placeholder="Tick teeth in Tooth Selection"
                     />
                 </div>
 
@@ -359,6 +366,18 @@ export default function CaseFormModal({
                 <div className="sm:col-span-2">
                     <Label>Tooth Selection</Label>
                     <ToothChart value={f.toothNumber} onChange={(text) => setF({ ...f, toothNumber: text })} />
+                </div>
+
+                <div className="sm:col-span-2">
+                    <Label>Adv / Remarks</Label>
+
+                    <Textarea
+                        value={f.details}
+                        onChange={(e) => {
+                            setF({ ...f, details: e.target.value });
+                            setRemarksTouched(true);
+                        }}
+                    />
                 </div>
 
                 <div className="sm:col-span-2">
@@ -491,18 +510,6 @@ export default function CaseFormModal({
                             />
                         </div>
                     ))}
-                </div>
-
-                <div className="sm:col-span-2">
-                    <Label>Remarks</Label>
-
-                    <Textarea
-                        value={f.details}
-                        onChange={(e) => {
-                            setF({ ...f, details: e.target.value });
-                            setRemarksTouched(true);
-                        }}
-                    />
                 </div>
 
                 <div className="flex flex-col gap-3 border-t pt-3 sm:col-span-2">

@@ -69,7 +69,7 @@ const fields: { key: string; label: string; type: string }[] = [
     { key: "gender", label: "Gender", type: "radio" },
     { key: "bloodGroup", label: "Blood Group", type: "select" },
     { key: "admissionDate", label: "Admission Date", type: "date" },
-    { key: "serviceCharge", label: "Total Service Charge", type: "number" },
+    { key: "serviceCharge", label: "Total Agreement Charge", type: "number" },
     { key: "photoUrl", label: "Patient Photo", type: "photo" },
     { key: "address", label: "Address", type: "textarea" },
     { key: "agreementDetails", label: "Agreement Details", type: "textarea" },
@@ -214,7 +214,7 @@ export default function Patients() {
         e.preventDefault();
 
         if (!editing && !Number(form.serviceCharge)) {
-            if (!confirm("Total Service Charge is empty, so no agreement will be opened. Continue?"))
+            if (!confirm("Total Agreement Charge is empty, so no agreement will be opened. Continue?"))
                 return;
         }
 
@@ -242,10 +242,9 @@ export default function Patients() {
         closeModal();
         load();
 
+        // new patient: go to the case history page with the New Case History popup open
         if (!editing && saved?.id) {
-            if (confirm("Patient added. Go to Bill Collection now?")) {
-                router.push(`/payments?patientId=${saved.id}`);
-            }
+            router.push(`/cases/patient/${saved.id}?new=1`);
         }
     };
 
@@ -392,7 +391,7 @@ export default function Patients() {
                                 </th>
 
                                 <th className="p-3 text-right whitespace-nowrap">
-                                    Total Service Charge
+                                    Total Agreement Charge
                                 </th>
 
                                 <th className="p-3"></th>

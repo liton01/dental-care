@@ -660,7 +660,7 @@ export default function BillCollection() {
                                 .filter((a) => a.isClosed === "N" || String(a.id) === f.agreementId)
                                 .map((a) => (
                                     <option key={a.id} value={a.id}>
-                                        #{a.id} · Total Service Charge {tk(a.serviceChargeAmount)} · Dues {tk(a.dues)}
+                                        #{a.id} · Total Agreement Charge {tk(a.serviceChargeAmount)} · Dues {tk(a.dues)}
                                         {a.isClosed === "Y" ? " (closed)" : ""}
                                     </option>
                                 ))}
