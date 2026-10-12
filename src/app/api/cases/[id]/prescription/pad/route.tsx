@@ -3,6 +3,8 @@ import { bad, requireSession } from "@/lib/api";
 import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 import { Document, Page, Text, View, StyleSheet, Svg, Path } from "@react-pdf/renderer";
+import { ToothChartPdf } from "@/lib/reports/tooth-chart-pdf";
+import { selectedTeeth, toothNote } from "@/lib/tooth";
 
 // ============================================================
 // PAD MODE: prints ONLY the values onto the pre-printed A4 pad.
@@ -18,6 +20,7 @@ const POS = {
   date:    { x: 172, y: 42.2 },   // after "Date:"
   cc:      { x: 16,  y: 60, w: 58 },  // C/C block (problem)
   oe:      { x: 16,  y: 87, w: 58 },  // O/E block
+  tooth:   { x: 4,   y: 120 },  // tooth chart, between O/E and B/P
   bp:      { x: 13,  y: 140 },  // after "B/P:"
   adv:     { x: 6,   y: 205, w: 60 }, // ADV: block (remarks)
   rx:      { x: 82,  y: 58, w: 115 }, // Rx column (medicines)
@@ -103,6 +106,13 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
         {c.oe ? (
           <At x={POS.oe.x} y={POS.oe.y} w={POS.oe.w}>
             <Text>{c.oe}</Text>
+          </At>
+        ) : null}
+
+        {selectedTeeth(c.toothNumber).size > 0 || toothNote(c.toothNumber) ? (
+          <At x={POS.tooth.x} y={POS.tooth.y}>
+            {selectedTeeth(c.toothNumber).size > 0 ? <ToothChartPdf value={c.toothNumber} cell={11} fontSize={8} /> : null}
+            {toothNote(c.toothNumber) ? <Text style={{ fontSize: 9, marginTop: 2 }}>{toothNote(c.toothNumber)}</Text> : null}
           </At>
         ) : null}
 

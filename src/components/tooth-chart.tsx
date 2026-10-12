@@ -9,11 +9,8 @@
 // Saved in the Tooth Number text as FDI codes: UR 11-18, UL 21-28, LL 31-38, LR 41-48,
 // e.g. "16, 26". Any other words already in the text (e.g. "All tooth") are kept.
 
-const CODE = /\b([1-4][1-8])\b/g;
-
-export function selectedTeeth(text: string): Set<string> {
-    return new Set(Array.from(String(text || "").matchAll(CODE)).map((m) => m[1]));
-}
+import { TOOTH_CODE as CODE, selectedTeeth } from "@/lib/tooth";
+export { selectedTeeth };
 
 function rebuild(text: string, codes: Set<string>) {
     const others = String(text || "")

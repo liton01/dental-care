@@ -3,6 +3,8 @@ import { bad, requireSession } from "@/lib/api";
 import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { ToothChartPdf } from "@/lib/reports/tooth-chart-pdf";
+import { selectedTeeth, toothNote } from "@/lib/tooth";
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 11 },
@@ -51,11 +53,26 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
         </View>
         <View style={styles.row2}>
           <Text>Phone: {c.patient.phone}{c.patient.age ? `   Age: ${c.patient.age}` : ""}{c.patient.gender ? `   ${c.patient.gender.charAt(0)}${c.patient.gender.slice(1).toLowerCase()}` : ""}</Text>
-          <Text>Case: Case-{String(c.caseNo).padStart(2, "0")}{c.toothNumber ? `   Tooth: ${c.toothNumber}` : ""}{c.bp ? `   B/P: ${c.bp}` : ""}</Text>
+          <Text>Case: Case-{String(c.caseNo).padStart(2, "0")}{c.bp ? `   B/P: ${c.bp}` : ""}</Text>
         </View>
 
         <Text style={styles.section}>Problem / Diagnosis</Text>
         <Text style={styles.body}>{c.problem || "—"}</Text>
+
+        {c.oe ? (
+          <>
+            <Text style={styles.section}>O/E</Text>
+            <Text style={styles.body}>{c.oe}</Text>
+          </>
+        ) : null}
+
+        {selectedTeeth(c.toothNumber).size > 0 || toothNote(c.toothNumber) ? (
+          <>
+            <Text style={styles.section}>Tooth Selection</Text>
+            {selectedTeeth(c.toothNumber).size > 0 ? <ToothChartPdf value={c.toothNumber} cell={13} fontSize={10} /> : null}
+            {toothNote(c.toothNumber) ? <Text style={[styles.body, { marginTop: 3 }]}>{toothNote(c.toothNumber)}</Text> : null}
+          </>
+        ) : null}
 
         <Text style={styles.section}>Treatment</Text>
         <Text style={styles.body}>{c.treatment || "—"}</Text>
