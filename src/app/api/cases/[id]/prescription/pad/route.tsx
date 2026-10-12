@@ -130,7 +130,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
             {c.details ? <Text>{c.details}</Text> : null}
             {/* tooth selection again under ADV */}
             {selectedTeeth(c.toothNumber).size > 0 ? (
-              <View style={{ marginTop: 6 }}>
+              <View style={{ marginTop: 42 }}>{/* 0.5 inch lower than before */}
                 <ToothChartPdf value={c.toothNumber} cell={9} fontSize={7} />
               </View>
             ) : null}
