@@ -10,9 +10,11 @@ import { useCan } from "./permissions-context";
 export default function PatientSearch({
     placeholder = "Search patient by name, phone or patient no...",
     className = "",
+    autoFocus = false,
 }: {
     placeholder?: string;
     className?: string;
+    autoFocus?: boolean;
 }) {
     const router = useRouter();
     const can = useCan();
@@ -111,6 +113,7 @@ export default function PatientSearch({
 
             <input
                 className="input !pl-9"
+                autoFocus={autoFocus}
                 placeholder={placeholder}
                 value={q}
                 onChange={(e) => {
