@@ -165,18 +165,37 @@ export default function Patients() {
     useEffect(() => {
         load();
 
-        // arriving from patient search: ?new=1&name=...
-        const sp = new URLSearchParams(window.location.search);
-        if (sp.get("new") === "1") {
-            setEditing(null);
-            setForm({
-                ...empty,
-                name: sp.get("name") || "",
-                admissionDate: new Date().toISOString().slice(0, 10),
-            });
-            setModalOpen(true);
-            window.history.replaceState(null, "", "/patients");
-        }
+        // arriving from patient search: ?new=1&name=... or ?edit=<patient id>
+        const fromUrl = () => {
+            const sp = new URLSearchParams(window.location.search);
+            if (sp.get("new") === "1") {
+                setEditing(null);
+                setForm({
+                    ...empty,
+                    name: sp.get("name") || "",
+                    admissionDate: new Date().toISOString().slice(0, 10),
+                });
+                setModalOpen(true);
+                window.history.replaceState(null, "", "/patients");
+            } else if (sp.get("edit")) {
+                const id = sp.get("edit");
+                window.history.replaceState(null, "", "/patients");
+                fetch(`/api/patients/${id}`)
+                    .then((r) => r.json())
+                    .then((p) => {
+                        if (!p?.id) return toast.error("Patient not found.");
+                        // only the patient fields, not its related lists
+                        const { caseHistories, prescriptions, payments, agreements, appointments, ...patient } = p;
+                        openEdit(patient);
+                    })
+                    .catch(() => toast.error("Failed to load patient."));
+            }
+        };
+        fromUrl();
+
+        // search used while already on this page: the URL changes but the page stays mounted
+        window.addEventListener("patient-search:open", fromUrl);
+        return () => window.removeEventListener("patient-search:open", fromUrl);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

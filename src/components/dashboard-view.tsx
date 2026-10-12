@@ -9,9 +9,9 @@ const taka = (n: number) => `৳ ${n.toLocaleString("en-US", { maximumFractionDi
 
 // Stat cards, this month's charts and recent patients
 export default function DashboardView({ d }: { d: any }) {
-    const stats = [
-        { label: "Active Patients", value: d.patients, icon: Users, tone: "bg-teal-50 border-teal-100", chip: "bg-teal-100 text-teal-700" },
-        { label: "Case Histories", value: d.cases, icon: ClipboardList, tone: "bg-sky-50 border-sky-100", chip: "bg-sky-100 text-sky-700" },
+    const stats: any[] = [
+        { label: "Active Patients", value: d.patients, icon: Users, tone: "bg-teal-50 border-teal-100", chip: "bg-teal-100 text-teal-700", href: "/patients", tip: "Open patient list" },
+        { label: "Case Histories", value: d.cases, icon: ClipboardList, tone: "bg-sky-50 border-sky-100", chip: "bg-sky-100 text-sky-700", href: "/cases/list", tip: "Open case history list" },
         { label: "Prescriptions", value: d.prescriptions, icon: Pill, tone: "bg-violet-50 border-violet-100", chip: "bg-violet-100 text-violet-700" },
         {
             label: "Today's Appointments",
@@ -20,6 +20,7 @@ export default function DashboardView({ d }: { d: any }) {
             tone: "bg-amber-50 border-amber-100",
             chip: "bg-amber-100 text-amber-700",
             href: "/follow-ups",
+            tip: "Open Next Follow-up list",
         },
         {
             label: "Today's Collection",
@@ -46,7 +47,7 @@ export default function DashboardView({ d }: { d: any }) {
                         </div>
                     );
                     return s.href ? (
-                        <Link key={s.label} href={s.href} className="block transition hover:-translate-y-0.5" title="Open Next Follow-up list">
+                        <Link key={s.label} href={s.href} className="block transition hover:-translate-y-0.5" title={s.tip}>
                             {card}
                         </Link>
                     ) : (
@@ -59,9 +60,9 @@ export default function DashboardView({ d }: { d: any }) {
                 <>
                     <h2 className="mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">{d.month.label}</h2>
                     <div className="grid gap-3 lg:grid-cols-3">
-                        <MonthBarChart title="Collection" data={d.month.collection} color="#0d9488" format={taka} today={d.month.today} />
-                        <MonthBarChart title="Patient Enrollment" data={d.month.enrollment} color="#6366f1" today={d.month.today} />
-                        <MonthBarChart title="Follow-ups" data={d.month.followUps} color="#d97706" today={d.month.today} />
+                        <MonthBarChart title="Collection" data={d.month.collection} color="#0d9488" format={taka} today={d.month.today} href="/payments" />
+                        <MonthBarChart title="Patient Enrollment" data={d.month.enrollment} color="#6366f1" today={d.month.today} href="/patients" />
+                        <MonthBarChart title="Follow-ups" data={d.month.followUps} color="#d97706" today={d.month.today} href="/follow-ups" />
                     </div>
                 </>
             )}

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 
 // Daily bars for one month. Single series, so no legend: the title names it.
 // Bars sit on the baseline with rounded tops and a small gap; hover shows the day's value.
@@ -10,12 +12,14 @@ export default function MonthBarChart({
     color,
     format = (n: number) => String(n),
     today,
+    href,
 }: {
     title: string;
     data: { date: string; value: number }[];
     color: string;
     format?: (n: number) => string;
     today?: string;
+    href?: string;
 }) {
     const [hover, setHover] = useState<number | null>(null);
     const max = Math.max(0, ...data.map((d) => d.value));
@@ -35,7 +39,14 @@ export default function MonthBarChart({
     return (
         <div className="card p-4">
             <div className="mb-3 flex items-baseline justify-between gap-2">
-                <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
+                {href ? (
+                    <Link href={href} className="group inline-flex items-center gap-1 text-sm font-semibold text-slate-700 hover:text-teal-700" title={`Open ${title}`}>
+                        {title}
+                        <ArrowUpRight size={14} className="text-slate-400 group-hover:text-teal-700" />
+                    </Link>
+                ) : (
+                    <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
+                )}
                 <div className="text-right">
                     <div className="text-lg font-bold text-slate-900">{format(total)}</div>
                     <div className="text-[11px] text-slate-500">this month</div>

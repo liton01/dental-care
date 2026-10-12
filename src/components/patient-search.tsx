@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, UserPlus, Loader2, ReceiptText, FolderOpen } from "lucide-react";
+import { Search, UserPlus, Loader2, ReceiptText, FolderOpen, UserCog } from "lucide-react";
 import { useCan } from "./permissions-context";
 
 // Server-side patient autocomplete. Picking a patient opens a new bill
@@ -72,12 +72,19 @@ export default function PatientSearch({
     // existing patient -> new bill collection, prefilled with the patient
     const goPatient = (p: any) => go(`/payments?patientId=${p.id}`);
 
-    const goNew = () => {
+    // open a popup on the Patients page (also works when already on that page)
+    const goPatients = (query: string) => {
         setOpen(false);
-        const name = q.trim();
         setQ("");
-        router.push(`/patients?new=1&name=${encodeURIComponent(name)}`);
+        if (window.location.pathname === "/patients") {
+            window.history.pushState(null, "", `/patients?${query}`);
+            window.dispatchEvent(new Event("patient-search:open"));
+        } else {
+            router.push(`/patients?${query}`);
+        }
     };
+
+    const goNew = () => goPatients(`new=1&name=${encodeURIComponent(q.trim())}`);
 
     const showNew = !loading && q.trim() !== "" && can("PATIENT.C");
 
@@ -144,6 +151,18 @@ export default function PatientSearch({
 
                             <span className="flex shrink-0 items-center gap-1">
                                 <span className="mr-1 text-xs text-slate-500">{p.phone}</span>
+                                <button
+                                    type="button"
+                                    className="rounded-lg p-1.5 text-sky-700 hover:bg-sky-100"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        goPatients(`edit=${p.id}`);
+                                    }}
+                                    title="Patient details"
+                                    aria-label="Patient details"
+                                >
+                                    <UserCog size={15} />
+                                </button>
                                 <button
                                     type="button"
                                     className="rounded-lg p-1.5 text-indigo-700 hover:bg-indigo-100"
