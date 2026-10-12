@@ -3,6 +3,7 @@ import { bad, requireSession } from "@/lib/api";
 import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 import { Document, Page, Text, View, StyleSheet, Svg, Path } from "@react-pdf/renderer";
+import { registerPdfFonts, PDF_FONT } from "@/lib/reports/pdf-fonts";
 import { ToothChartPdf } from "@/lib/reports/tooth-chart-pdf";
 import { selectedTeeth, toothNote } from "@/lib/tooth";
 
@@ -13,11 +14,11 @@ import { selectedTeeth, toothNote } from "@/lib/tooth";
 // adjust the numbers below (bigger y = lower, bigger x = right).
 // ============================================================
 const POS = {
-  name:    { x: 22,  y: 42.5 },   // after "Name:"
-  sexM:    { x: 115.5, y: 41.5 },   // tick over the M box
-  sexF:    { x: 124, y: 41.5 },   // tick over the F box
-  age:     { x: 147, y: 42.2 },   // after "Age:"
-  date:    { x: 172, y: 42.2 },   // after "Date:"
+  name:    { x: 22,  y: 41 },   // after "Name:"
+  sexM:    { x: 115.5, y: 40 },   // tick over the M box
+  sexF:    { x: 124, y: 40 },   // tick over the F box
+  age:     { x: 147, y: 40.7 },   // after "Age:"
+  date:    { x: 172, y: 40.7 },   // after "Date:"
   cc:      { x: 16,  y: 60, w: 58 },  // C/C block (problem)
   oe:      { x: 16,  y: 87, w: 58 },  // O/E block
   tooth:   { x: 4,   y: 120 },  // tooth chart, between O/E and B/P
@@ -28,8 +29,10 @@ const POS = {
 
 const mm = (v: number) => v * 2.8346; // mm -> pt
 
+registerPdfFonts();
+
 const styles = StyleSheet.create({
-  page: { fontSize: 11 },
+  page: { fontSize: 11, fontFamily: PDF_FONT },
   abs: { position: "absolute" },
   med: { marginBottom: 7 },
   medName: { fontSize: 11 },
@@ -111,7 +114,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 
         {selectedTeeth(c.toothNumber).size > 0 || toothNote(c.toothNumber) ? (
           <At x={POS.tooth.x} y={POS.tooth.y}>
-            {selectedTeeth(c.toothNumber).size > 0 ? <ToothChartPdf value={c.toothNumber} cell={11} fontSize={8} /> : null}
+            {selectedTeeth(c.toothNumber).size > 0 ? <ToothChartPdf value={c.toothNumber} cell={9} fontSize={7} /> : null}
             {toothNote(c.toothNumber) ? <Text style={{ fontSize: 9, marginTop: 2 }}>{toothNote(c.toothNumber)}</Text> : null}
           </At>
         ) : null}

@@ -3,11 +3,14 @@ import { bad, requireSession } from "@/lib/api";
 import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { registerPdfFonts, PDF_FONT } from "@/lib/reports/pdf-fonts";
 import { ToothChartPdf } from "@/lib/reports/tooth-chart-pdf";
 import { selectedTeeth, toothNote } from "@/lib/tooth";
 
+registerPdfFonts();
+
 const styles = StyleSheet.create({
-  page: { padding: 40, fontSize: 11 },
+  page: { padding: 40, fontSize: 11, fontFamily: PDF_FONT },
   title: { fontSize: 20, textAlign: "center" },
   sub: { fontSize: 9, color: "#64748b", textAlign: "center", marginBottom: 14 },
   rule: { borderBottom: "1 solid #0f766e", marginBottom: 12 },

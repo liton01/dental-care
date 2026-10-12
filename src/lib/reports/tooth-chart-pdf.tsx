@@ -21,8 +21,8 @@ export function ToothChartPdf({ value, cell = 11, fontSize = 9 }: { value: strin
                 <Text
                     style={{
                         width: cell - 1,
-                        height: cell - 1,
-                        paddingTop: (cell - 1 - fontSize) / 2 + 0.6,
+                        paddingTop: Math.max(0, (cell - 1 - fontSize) / 2) + 0.6,
+                        paddingBottom: Math.max(0, (cell - 1 - fontSize) / 2 - 0.6),
                         borderRadius: (cell - 1) / 2,
                         border: on ? "0.9 solid #000" : "0.9 solid #fff",
                         textAlign: "center",
