@@ -143,12 +143,12 @@ export default function Sidebar({
 
     return (
         <aside
-            className={`fixed inset-y-0 left-0 z-30 flex w-[17rem] flex-col border-r border-slate-200 bg-white transition-transform duration-200 ${
+            className={`fixed inset-y-0 left-0 z-30 flex w-[17rem] flex-col overflow-hidden border-r border-slate-200 bg-white transition-transform duration-200 lg:inset-y-3 lg:left-3 lg:rounded-2xl lg:border lg:shadow-sm ${
                 mobileOpen ? "translate-x-0" : "-translate-x-full"
-            } ${collapsed ? "lg:-translate-x-full" : "lg:translate-x-0"}`}
+            } ${collapsed ? "lg:-translate-x-[calc(100%+1rem)]" : "lg:translate-x-0"}`}
         >
             {/* brand: same height and border as the top bar */}
-            <div className="flex h-16 shrink-0 items-center border-b border-slate-200 px-5">
+            <div className="flex h-16 shrink-0 items-center border-b border-slate-100 px-5">
                 <Link href="/dashboard" className="block min-w-0 hover:opacity-80" title="Go to dashboard">
                     <div className="truncate font-bold text-teal-700">{org?.nameEn || "Mohonto Dental Care"}</div>
                     <div className="truncate text-xs text-slate-500">{org?.slogan || "Clinic Management"}</div>
